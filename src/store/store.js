@@ -1,15 +1,29 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+// Import dependencies
+import Vue from 'vue';
+import Vuex from 'vuex';
 
-Vue.use(Vuex)
+// Import store modules
+import navModule from './nav';
+import discordModule from './discord';
+
+// Inject the store into Vue
+Vue.use(Vuex);
 
 export default new Vuex.Store({
-  state: {
-  },
-  mutations: {
-  },
-  actions: {
-  },
-  modules: {
-  }
-})
+	state: {
+
+	},
+	getters: {
+
+	},
+	mutations: {
+
+	},
+	actions: {
+
+	},
+	modules: {
+		nav: navModule,
+		discord: discordModule
+	}
+});

@@ -1,10 +1,10 @@
 <template>
-	<div>This is a test</div>
+	<div></div>
 </template>
 
 <script>
 	export default {
-		name: "tomika-nav"
+		name: "tomika-discord-pane"
 	}
 </script>
 
