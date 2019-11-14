@@ -19,7 +19,7 @@ export default {
 		activeStream: null
 
 	},
-	getter: {
+	getters: {
 
 	},
 	mutations: {

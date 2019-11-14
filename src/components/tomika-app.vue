@@ -27,7 +27,7 @@
 			tomikaDiscordPane,
 			tomikaTwitchPane
 		},
-		created() {
+		async created() {
 			/**
 			 * Function which checks if a mouse click was outside the specified ignore elements
 			 * @param ignoreArr Array of IDs that when the associated element is pressed, the pane will not be closed
@@ -53,6 +53,19 @@
 			clickOutPaneCheck(['tomika-twitch-pane', 'tomika-nav-bar-twitch-button'], () => {
 				this.$store.commit('nav/setTwitchPaneOpen', false);
 			});
+
+			// Attempt to get user's information from Discord
+			try {
+				const userInfoResponse = await fetch(`${this.$store.state.app.backEnd}/discord/user`, {
+					method: 'GET',
+					credentials: 'include'
+				});
+				if (userInfoResponse.ok) {
+					this.$store.commit('discord/setUser', await userInfoResponse.json());
+				}
+			} catch (err) {
+				console.log(err);
+			}
 		},
 		methods: {
 			positionPane(buttonId, paneId) {
@@ -107,6 +120,11 @@
 	}
 	button:hover:after {
 		opacity: 0.2;
+	}
+	hr {
+		border: none;
+		border-bottom: 1px solid hsl(0,0%,50%);
+		margin: 16px 4px;
 	}
 	#app {
 		font-family: 'Roboto Condensed', Arial, sans-serif;

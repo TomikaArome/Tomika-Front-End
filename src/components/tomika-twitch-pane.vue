@@ -87,6 +87,7 @@
 	}
 	.status {
 		font-weight: bold;
+		margin-bottom: 8px;
 	}
 	.game {
 		font-size: 0.8em;
@@ -114,7 +115,7 @@
 		100% { transform: scale(1); opacity: 0; }
 	}
 	.watch-button {
-		margin-top: 8px;
+		margin-top: 12px;
 		background: hsl(261,43%,45%);
 	}
 	.watch-button > svg {
@@ -123,5 +124,6 @@
 	.info {
 		font-size: 0.8em;
 		margin: 4px 0px;
+		color: hsl(0,0%,70%);
 	}
 </style>

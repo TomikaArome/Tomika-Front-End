@@ -24,10 +24,14 @@
 			</svg>
 		</a>
 		<div id="tomika-nav-bar-discord-button" v-on:click="$store.commit('nav/setDiscordPaneOpen')"
-			:class="{ highlighted: $store.state.nav.discordPaneOpen }">
-			<div>
-				<div class="displayName">Tomika</div>
-				<div class="tag">Tomika#4051</div>
+			:class="{ highlighted: $store.state.nav.discordPaneOpen }" class="animatedDiscordPfpOnHover">
+			<div v-if="$store.getters['discord/connected']">
+				<div class="displayName">{{ $store.state.discord.user.username }}</div>
+				<div class="tag">#{{ $store.state.discord.user.discriminator }}</div>
+			</div>
+			<div v-else>
+				<div class="displayName">Not connected</div>
+				<div class="tag">Connect here!</div>
 			</div>
 			<tomika-discord-pfp />
 		</div>
@@ -162,7 +166,7 @@
 	#tomika-nav-bar-discord-button:hover, #tomika-nav-bar-nav-button:hover, .social-button:hover, .highlighted {
 		background-color: hsla(0,0%,100%,0.1);
 	}
-	#tomika-nav-bar-discord-button > div {
+	.displayName, .tag {
 		display: flex;
 		flex-direction: column;
 		text-align: right;
