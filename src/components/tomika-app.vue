@@ -118,6 +118,16 @@
 		opacity: 0;
 		transition: opacity 150ms;
 	}
+	button.notFilled {
+		border: 1px solid hsl(0,0%,25%);
+		color: hsl(0,0%,25%);
+		padding: calc(0.5em - 1px) calc(1em - 1px);
+		background: transparent;
+	}
+	button.notFilled.red {
+		border-color: hsl(0,40%,50%);
+		color: hsl(0,40%,50%);
+	}
 	button:hover:after {
 		opacity: 0.2;
 	}

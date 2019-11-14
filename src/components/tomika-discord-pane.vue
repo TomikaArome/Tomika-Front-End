@@ -5,6 +5,9 @@
 			<tomika-discord-pfp size="64" />
 			<div class="displayName">{{ $store.state.discord.user.username }}</div>
 			<div class="tag">#{{ $store.state.discord.user.discriminator }}</div>
+			<button class="connect-button red notFilled" v-on:click="disconnect">
+				<font-awesome-icon icon="lock"></font-awesome-icon>Disconnect
+			</button>
 		</template>
 		<template v-else>
 			<div v-if="iframeVisible" class="iframe-wrapper">
@@ -38,7 +41,7 @@
 	// Import dependencies
 	import Vue from 'vue';
 	import { library } from '@fortawesome/fontawesome-svg-core';
-	import { faCheck } from '@fortawesome/free-solid-svg-icons';
+	import { faCheck, faLock } from '@fortawesome/free-solid-svg-icons';
 	import { faDiscord } from '@fortawesome/free-brands-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
@@ -46,7 +49,7 @@
 	import tomikaDiscordPfp from './tomika-discord-pfp';
 
 	// Font awesome
-	library.add(faCheck, faDiscord);
+	library.add(faCheck, faLock, faDiscord);
 	Vue.component('font-awesome-icon', FontAwesomeIcon);
 
 	export default {
@@ -77,17 +80,34 @@
 						});
 						if (userInfoResponse.ok) {
 							this.$store.commit('discord/setUser', await userInfoResponse.json());
+							this.iframeVisible = false;
 						}
 					} catch (err) {
 						console.log(err);
 					}
 				}
 			});
+		},
+		methods: {
+			async disconnect() {
+				let disconnectResponse = await fetch(`${this.$store.state.app.backEnd}/discord/disconnect`, {
+					method: 'POST',
+					credentials: 'include'
+				});
+				if (disconnectResponse.ok && disconnectResponse.status === 200) {
+					this.$store.commit('discord/setUser');
+				}
+			}
 		}
 	}
 </script>
 
 <style scoped>
+	#tomika-discord-pane {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
 	.title {
 		font-weight: bold;
 		margin-bottom: 8px;
@@ -115,6 +135,8 @@
 	}
 	.connect-button {
 		margin-top: 12px;
+	}
+	.connect-button:not(.notFilled) {
 		background-color: #7289DA;
 	}
 	.connect-button > svg {

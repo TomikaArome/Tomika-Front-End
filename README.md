@@ -18,7 +18,7 @@ Edit the `config.json` file to include the following configuration
 }
 ```
 * `back-end-url` URL of the back-end, without the trailing `/`.
-##Usage
+## Usage
 Start the development server. The server will run at `http://localhost:8080/`.
 ```
 $ npm run serve
