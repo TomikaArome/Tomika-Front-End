@@ -25,7 +25,11 @@
 		</a>
 		<div id="tomika-nav-bar-discord-button" v-on:click="$store.commit('nav/setDiscordPaneOpen')"
 			:class="{ highlighted: $store.state.nav.discordPaneOpen }" class="animatedDiscordPfpOnHover">
-			<div v-if="$store.getters['discord/connected']">
+			<div v-if="$store.state.app.backEndUnreachable">
+				<div class="displayName">Server unreachable</div>
+				<div class="tag">Please try again later</div>
+			</div>
+			<div v-else-if="$store.getters['discord/connected']">
 				<div class="displayName">{{ $store.state.discord.user.username }}</div>
 				<div class="tag">#{{ $store.state.discord.user.discriminator }}</div>
 			</div>
@@ -128,6 +132,10 @@
 		flex-direction: row;
 		align-items: center;
 		user-select: none;
+		z-index: 1000000;
+	}
+	a, a:visited {
+		color: inherit;
 	}
 	#tomika-nav-bar > div, #tomika-nav-bar > a {
 		display: flex;

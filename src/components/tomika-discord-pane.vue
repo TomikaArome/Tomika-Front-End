@@ -1,7 +1,13 @@
 <template>
 	<div id="tomika-discord-pane" class="tomika-pane">
 		<svg class="chevron" viewBox="0 0 1 1"><path d="M2 1l-1-1l-1 1z"></path></svg>
-		<template v-if="$store.getters['discord/connected']">
+		<template v-if="$store.state.app.backEndUnreachable">
+			<div class="title">Tomika.ink's server could not be reached</div>
+			<p>The server is required for Discord authentication and other resources connected to the site.</p>
+			<p>Try refreshing the page later, or contact <a target="_blank" href="http://twitter.com/TomikaArome">@TomikaArome</a> on Twitter or Tomika#4051 on Discord.</p>
+			<p style="font-weight: bold; color: hsl(0,25%,50%);">Please note that access to the server may be temperamental, as the site is still in development and there is not yet a huge need for the server to be working 24/7.</p>
+		</template>
+		<template v-else-if="$store.getters['discord/connected']">
 			<tomika-discord-pfp size="64" />
 			<div class="displayName">{{ $store.state.discord.user.username }}</div>
 			<div class="tag">#{{ $store.state.discord.user.discriminator }}</div>
@@ -107,10 +113,19 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		max-width: 300px;
 	}
 	.title {
 		font-weight: bold;
 		margin-bottom: 8px;
+	}
+	p {
+		color: hsl(0,0%,70%);
+		font-size: 0.85em;
+		margin: 0.5em 0;
+	}
+	p:last-child {
+		margin-bottom: 0;
 	}
 	.checklist {
 		display: flex;

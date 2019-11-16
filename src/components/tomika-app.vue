@@ -8,7 +8,7 @@
 		<transition name="slide-fade">
 			<tomika-twitch-pane v-if="$store.state.nav.twitchPaneOpen"></tomika-twitch-pane>
 		</transition>
-
+		<component class="tomika-content" :is="contentComponent"></component>
 	</div>
 </template>
 
@@ -18,6 +18,7 @@
 	import tomikaNavDrawer from './tomika-nav-drawer';
 	import tomikaDiscordPane from './tomika-discord-pane';
 	import tomikaTwitchPane from './tomika-twitch-pane';
+	import tomikaContentIndex from './tomika-content-index';
 
 	export default {
 		name: 'tomika-app',
@@ -25,7 +26,13 @@
 			tomikaNavBar,
 			tomikaNavDrawer,
 			tomikaDiscordPane,
-			tomikaTwitchPane
+			tomikaTwitchPane,
+			tomikaContentIndex
+		},
+		data() {
+			return {
+				contentComponent: 'tomika-content-index'
+			}
 		},
 		async created() {
 			/**
@@ -36,13 +43,13 @@
 			const clickOutPaneCheck = (ignoreArr, action) => {
 				window.addEventListener('click', (e) => {
 					let target = e.target;
-					while (target.tagName !== 'HTML') {
+					while (typeof target === 'object' && target.tagName !== 'HTML') {
 						if (ignoreArr.indexOf(target.id) !== -1) { return; }
 						target = target.parentNode;
 					}
 					action();
 				});
-			}
+			};
 			// Set it so that when different panes are clicked out of, they close
 			clickOutPaneCheck(['tomika-nav-drawer', 'tomika-nav-bar-nav-button'], () => {
 				this.$store.commit('nav/setNavDrawerOpen', false);
@@ -61,10 +68,11 @@
 					credentials: 'include'
 				});
 				if (userInfoResponse.ok) {
+					this.$store.commit('app/setBackEndUnreachable', false);
 					this.$store.commit('discord/setUser', await userInfoResponse.json());
 				}
 			} catch (err) {
-				console.log(err);
+				this.$store.commit('app/setBackEndUnreachable');
 			}
 		},
 		methods: {
@@ -89,10 +97,27 @@
 		margin: 0;
 		padding: 0;
 		min-width: 100vw;
-		min-height: 100vh;
+		background-image: url('/images/stripes.png');
+		background-color: hsl(0,0%,12%);
+	}
+	#app {
+		font-family: 'Roboto Condensed', Arial, sans-serif;
+		color: #ffffff;
+		font-size: 14px;
+	}
+	::selection {
+		background-color: hsla(180,100%,50%,0.2);
 	}
 	a, a:visited {
-		color: inherit;
+		color: hsl(180,50%,50%);
+		text-decoration: none;
+		transition: color 150ms;
+	}
+	a:hover {
+		color: hsl(180,50%,65%);
+	}
+	h1, h2, h3, h4, h5, h6 {
+		font-family: Splatoon2, "Roboto Condensed", Arial, sans-serif;
 	}
 	button {
 		position: relative;
@@ -136,15 +161,13 @@
 		border-bottom: 1px solid hsl(0,0%,50%);
 		margin: 16px 4px;
 	}
-	#app {
-		font-family: 'Roboto Condensed', Arial, sans-serif;
-	}
 	* {
 		box-sizing: border-box;
 	}
 	.tomika-pane {
 		background-color: hsl(0,0%,10%);
 		position: fixed;
+		z-index: 1000000;
 		top: 48px;
 		right: 0px;
 		color: #ffffff;
@@ -166,5 +189,19 @@
 	.slide-fade-enter, .slide-fade-leave-to {
 		transform: translateY(4px);
 		opacity: 0;
+	}
+	.tomika-content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		position: absolute;
+		top: 40px;
+		width: 100%;
+		min-height: calc(100% - 40px);
+	}
+	.tomika-column {
+		width: 100%;
+		max-width: 960px;
+		padding: 20px;
 	}
 </style>
