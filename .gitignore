@@ -67,4 +67,4 @@ dist/
 .idea/
 
 # App
-src/config.json
+public/config.json

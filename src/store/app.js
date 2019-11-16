@@ -1,4 +1,4 @@
-import config from '../config';
+import config from '../../public/config';
 
 export default {
 	namespaced: true,
