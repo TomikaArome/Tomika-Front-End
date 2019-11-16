@@ -87,7 +87,6 @@
 				const response = await fetch(`https://api.twitch.tv/helix/streams?user_login=${this.$store.state.twitch.userName}`,
 					{ headers }).catch(() => {
 					this.$store.commit('twitch/setActiveStream');
-					console.log("Error when fetching Twitch stream status");
 				});
 				if (response.ok) {
 					const res = await response.json();
@@ -96,7 +95,6 @@
 						const response2 = await fetch(`https://api.twitch.tv/helix/games?id=${res.data[0].game_id}`,
 							{ headers }).catch(() => {
 							this.$store.commit('twitch/setActiveStream');
-							console.log("Error when fetching Twitch game status");
 						});
 						if (response2.ok) {
 							const res2 = await response2.json();
@@ -114,7 +112,6 @@
 					}
 				} else {
 					this.$store.commit('twitch/setActiveStream');
-					console.log(`Error: ${response.status}`);
 				}
 			}
 		}
