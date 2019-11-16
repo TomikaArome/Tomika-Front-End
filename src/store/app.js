@@ -1,4 +1,4 @@
-import config from '../../public/config';
+const config = require('../config');
 
 export default {
 	namespaced: true,

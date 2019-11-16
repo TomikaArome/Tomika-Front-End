@@ -8,6 +8,7 @@ $ cd tomika-front-end
 $ npm install
 ```
 Create the `config.json` file in the `src` folder.
+When building, this `config.json` file should appear in the root directory of the build.
 ```
 $ touch src/config.json
 ```
