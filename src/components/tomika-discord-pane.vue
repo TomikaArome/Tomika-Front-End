@@ -17,7 +17,7 @@
 		</template>
 		<template v-else>
 			<div v-if="iframeVisible" class="iframe-wrapper">
-				<iframe ref="authIframe" src="http://localhost/discordoauth"></iframe>
+				<iframe ref="authIframe" :src="`${$store.state.app.backEnd}/discordoauth`"></iframe>
 			</div>
 			<template v-else>
 				<div class="title">Connect your Discord account to tomika.ink!</div>
