@@ -109,7 +109,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		max-width: 300px;
+		max-width: 400px;
 	}
 	.title {
 		font-weight: bold;

@@ -1,9 +1,13 @@
-const config = require('../config');
+//const config = require('../config');
+// This needs changing later when I have a better understanding of how to import configs
+const config = {
+	'back-end-url': process.env.NODE_ENV === 'development' ? 'http://localhost' : 'https://ec2.tomika.ink'
+};
 
 export default {
 	namespaced: true,
 	state: {
-		backEnd: config["back-end-url"],
+		backEnd: config['back-end-url'],
 		backEndUnreachable: true
 	},
 	getters: {
