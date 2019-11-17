@@ -1,8 +1,8 @@
 <template>
 	<div id="tomika-nav-bar">
-		<div id="tomika-nav-bar-nav-button" v-on:click="$store.commit('nav/setNavDrawerOpen')"
+		<div id="tomika-nav-bar-nav-button" v-on:click="/*$store.commit('nav/setNavDrawerOpen')*/"
 			:class="{ highlighted: $store.state.nav.navDrawerOpen }">
-			<font-awesome-icon icon="bars" class="bars" />
+			<!--<font-awesome-icon icon="bars" class="bars" />-->
 			<img :src="tomikaInkLogoUrl">
 		</div>
 		<div id="tomika-quick-navigation">
@@ -144,10 +144,10 @@
 	}
 	#tomika-nav-bar-nav-button {
 		transition: background-color 200ms;
-		cursor: pointer;
+		/*cursor: pointer;*/
 	}
 	#tomika-nav-bar-nav-button > img {
-			height: 24px;
+		height: 24px;
 	}
 	.bars {
 		font-size: 1.2em;
@@ -168,7 +168,7 @@
 		cursor: pointer;
 		transition: background-color 200ms;
 	}
-	#tomika-nav-bar-discord-button:hover, #tomika-nav-bar-nav-button:hover, .social-button:hover, .highlighted {
+	#tomika-nav-bar-discord-button:hover, /*#tomika-nav-bar-nav-button:hover,*/ .social-button:hover, .highlighted {
 		background-color: hsla(0,0%,100%,0.1);
 	}
 	.displayName, .tag {

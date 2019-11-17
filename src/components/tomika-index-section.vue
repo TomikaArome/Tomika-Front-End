@@ -4,8 +4,8 @@
 		<div v-if="backgroundImage" class="background-image">
 			<img :src="$props.backgroundImage" alt="">
 		</div>
-		<div class="tomika-column">
-			<div class="image">
+		<div class="tomika-column" :style="{ justifyContent: ($props.image || $props.backgroundImage) ? '' : 'center' }">
+			<div v-if="$props.image" class="image">
 				<img class="image" :src="$props.image" alt="">
 			</div>
 			<div class="content">
@@ -91,8 +91,14 @@
 		position: relative;
 		z-index: 1;
 	}
-	.image-on-left .tomika-column {
-		flex-direction: row;
+	@media (min-width: 701px) {
+		.image-on-left .image {
+			order: 2
+		}
+
+		.image-on-left .content {
+			order: 1
+		}
 	}
 	.image {
 		width: 40%;
@@ -108,5 +114,20 @@
 	}
 	.content {
 		width: 55%;
+	}
+	@media (max-width: 700px) {
+		.tomika-index-section .tomika-column {
+			flex-direction: column;
+		}
+		.content {
+			width: 100%;
+		}
+		.image {
+			width: 60%;
+		}
+		.background-image {
+			filter: brightness(50%);
+			max-width: 70%;
+		}
 	}
 </style>

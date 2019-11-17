@@ -7,6 +7,7 @@ import appModule from './app';
 import navModule from './nav';
 import discordModule from './discord';
 import twitchModule from './twitch';
+import twitterModule from './twitter';
 
 // Inject the store into Vue
 Vue.use(Vuex);
@@ -28,6 +29,7 @@ export default new Vuex.Store({
 		app: appModule,
 		nav: navModule,
 		discord: discordModule,
-		twitch: twitchModule
+		twitch: twitchModule,
+		twitter: twitterModule
 	}
 });

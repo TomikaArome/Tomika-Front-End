@@ -12,7 +12,7 @@
 				<template v-if="image.twitterCredit">
 					<hr>
 					<div class="credit">
-						Image credit: <a target="_blank" :href="'https://twitter.com/' + image.twitterCredit">@{{ image.twitterCredit }}</a>
+						Image credit: <tw-link :handle="image.twitterCredit"></tw-link>
 					</div>
 				</template>
 			</div>
@@ -21,8 +21,10 @@
 </template>
 
 <script>
+	import TwLink from "./tw-link";
 	export default {
 		name: 'tomika-image-banner',
+		components: {TwLink},
 		props: {
 			changeRate: { type: Number, default: 15000 },
 			images: {
@@ -120,5 +122,8 @@
 	.bottom-right { bottom: 50px; right: 50px; text-align: right; }
 	hr {
 		margin: 8px 0;
+	}
+	@media (max-width: 700px) {
+		.caption { display: none; }
 	}
 </style>
