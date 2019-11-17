@@ -79,17 +79,13 @@
 
 			window.addEventListener('message', async (event) => {
 				if (event.data && event.data.authSucceeded) {
-					try {
-						const userInfoResponse = await fetch(`${this.$store.state.app.backEnd}/discord/user`, {
-							method: 'GET',
-							credentials: 'include'
-						});
-						if (userInfoResponse.ok) {
-							this.$store.commit('discord/setUser', await userInfoResponse.json());
-							this.iframeVisible = false;
-						}
-					} catch (err) {
-						console.log(err);
+					const userInfoResponse = await fetch(`${this.$store.state.app.backEnd}/discord/user`, {
+						method: 'GET',
+						credentials: 'include'
+					});
+					if (userInfoResponse.ok) {
+						this.$store.commit('discord/setUser', await userInfoResponse.json());
+						this.iframeVisible = false;
 					}
 				}
 			});
