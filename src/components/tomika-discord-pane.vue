@@ -16,11 +16,7 @@
 			</button>
 		</template>
 		<template v-else>
-			<div v-if="iframeVisible" class="iframe-wrapper">
-				<!--<iframe ref="authIframe" :src="`${$store.state.app.backEnd}/discordoauth`"></iframe>-->
-				Currently unavailable
-			</div>
-			<template v-else>
+			<template>
 				<div class="title">Connect your Discord account to tomika.ink!</div>
 				<div class="checklist">
 					<div>
@@ -36,7 +32,7 @@
 						<div>Your account data is not collected</div>
 					</div>
 				</div>
-				<button class="connect-button" v-on:click="iframeVisible = true">
+				<button class="connect-button" v-on:click="clickConnectButton">
 					<font-awesome-icon :icon="['fab', 'discord']"></font-awesome-icon>Connect now!
 				</button>
 			</template>
@@ -64,20 +60,10 @@
 		components: {
 			tomikaDiscordPfp
 		},
-		data() {
-			return {
-				iframeVisible: false
-			}
-		},
 		mounted() {
 			this.$parent.positionPane('tomika-nav-bar-discord-button', 'tomika-discord-pane');
 
-			setInterval(() => {
-				if (this.$refs.authIframe) {
-					this.$refs.authIframe.contentWindow.postMessage('ping', '*');
-				}
-			}, 100);
-
+			// Create an event listener to be used to detect when a user has gone through Discord authorisation
 			window.addEventListener('message', async (event) => {
 				if (event.data && event.data.authSucceeded) {
 					const userInfoResponse = await fetch(`${this.$store.state.app.backEnd}/discord/user`, {
@@ -86,12 +72,14 @@
 					});
 					if (userInfoResponse.ok) {
 						this.$store.commit('discord/setUser', await userInfoResponse.json());
-						this.iframeVisible = false;
 					}
 				}
 			});
 		},
 		methods: {
+			clickConnectButton() {
+				window.open(`${this.$store.state.app.backEnd}/discordoauth`);
+			},
 			async disconnect() {
 				let disconnectResponse = await fetch(`${this.$store.state.app.backEnd}/discord/disconnect`, {
 					method: 'POST',
@@ -153,19 +141,6 @@
 	}
 	.connect-button > svg {
 		margin-right: 6px;
-	}
-	.iframe-wrapper {
-		width: 320px;
-		height: 376px;
-		overflow: hidden;
-		border-radius: 8px;
-	}
-	iframe {
-		border: none;
-		transform: scale(0.8);
-		transform-origin: top left;
-		width: 400px;
-		height: 470px;
 	}
 	.displayName {
 		margin-top: 8px;
