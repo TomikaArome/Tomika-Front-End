@@ -20,6 +20,12 @@
 				<div class="title">Connect your Discord account to tomika.ink!</div>
 				<div class="checklist">
 					<div>
+						<div class="info-blue"><font-awesome-icon icon="info-circle"></font-awesome-icon></div>
+						<div>Disclaimer: Connecting your Discord account is already possible but not yet necessary. Please do not yet bother unless I have specifically asked you to and you know what you're connecting for.</div>
+					</div>
+				</div>
+				<!--<div class="checklist">
+					<div>
 						<div><font-awesome-icon icon="check"></font-awesome-icon></div>
 						<div>Get a more personalised experience by setting app preferences</div>
 					</div>
@@ -31,7 +37,7 @@
 						<div><font-awesome-icon icon="check"></font-awesome-icon></div>
 						<div>Your account data is not collected</div>
 					</div>
-				</div>
+				</div>-->
 				<button class="connect-button" v-on:click="clickConnectButton">
 					<font-awesome-icon :icon="['fab', 'discord']"></font-awesome-icon>Connect now!
 				</button>
@@ -44,7 +50,7 @@
 	// Import dependencies
 	import Vue from 'vue';
 	import { library } from '@fortawesome/fontawesome-svg-core';
-	import { faCheck, faLock } from '@fortawesome/free-solid-svg-icons';
+	import { faCheck, faLock, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 	import { faDiscord } from '@fortawesome/free-brands-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
@@ -52,7 +58,7 @@
 	import tomikaDiscordPfp from './tomika-discord-pfp';
 
 	// Font awesome
-	library.add(faCheck, faLock, faDiscord);
+	library.add(faCheck, faLock, faDiscord, faInfoCircle);
 	Vue.component('font-awesome-icon', FontAwesomeIcon);
 
 	export default {
@@ -127,6 +133,9 @@
 		text-align: right;
 		color: hsl(120,30%,50%);
 		transform: translateY(5%);
+	}
+	.checklist > div > div.info-blue:nth-child(1) {
+		color: hsl(220,30%,60%);
 	}
 	.checklist > div > div:nth-child(2) {
 		flex-grow: 1;

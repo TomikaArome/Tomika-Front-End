@@ -10,26 +10,26 @@
 		</div>
 		<tomika-index-section title="Ayo! I'm Tomika!" image="/images/art/Tomika.png" image-on-left
 			background-color="hsl(180,35%,25%)">
-			<p>I'm Tomika! A 22 year old enthusiastic Splatoon 2 player, artist and developer. This website is a little presentation to myself, my projects and my life! I have a large variety of hobbies, most of which are creative.</p>
+			<p>I'm Tomika! A {{ age }} year old enthusiastic Splatoon 2 player, artist and developer. This website is a little presentation to myself, my projects and my life! I have a large variety of hobbies, most of which are creative.</p>
 			<p>Most of my friends are from the Splatoon community, with many coming from the UK. Splatoon has done plenty to shape my life and my hobbies, and so I am extremely thankful towards the game and the friends who are always there for me!</p>
 			<div class="name-origin">
 				<div>Origin of my names:</div>
 				<h2><span v-for="(fragment, i) in nameFragments" :key="i" :class="{ highlighted: nameOrigin[nameIndex].fragments.indexOf(i) !== -1 }">{{ fragment }}</span></h2>
 				<div>{{ nameOrigin[nameIndex].description }}</div>
 			</div>
-			<p class="caption">Pictured: Self made art of my squid OC, named after myself.</p>
+			<p class="caption">Pictured: Self made art (Chibi-October #7) of my squid OC, named after myself.</p>
 		</tomika-index-section>
 		<tomika-index-section title="Competitive Splatoon with Kemistry" background-color="hsl(0,35%,25%)"
 			background-image="/images/banners/i65-side-view.jpg" image="/images/kemistry-logo.png">
 			<p>One of my most treasured things is my competitive Splatoon team, Kemistry. These lovable eejits are more than just teammates to me, they are close friends and have given me more enjoyable times this last year than I've experienced the entire rest of my life!</p>
-			<p>Kemistry's captain is Zari. It is (unofficially) co-captained by me and Cynthie. The other full time members are Benji, Callie and Lew. Our former members are still treasured just as much, namely Jack, Seph, MooDee. We also have many friends from within the community who we love chatting and playing with!</p>
+			<p>Kemistry's captain is <tw-link handle="SplZarinie">Zari</tw-link>. It is (unofficially) co-captained by <tw-link handle="mintymochaa">Cynthie</tw-link> and I. The other full time members are <tw-link handle="benkiwi2355">Benji</tw-link>, <tw-link handle="mcprincessdiary">Callie</tw-link> and <tw-link handle="Lewieboy124">Lew</tw-link>. Our former members are still treasured just as much, namely <tw-link handle="Jackster1676">Jack</tw-link>, <tw-link handle="SephSquid">Seph</tw-link> and <tw-link handle="MooDeeStreams">MooDee</tw-link>. We also have many friends from within the community who we love chatting and playing with!</p>
 			<p>We've played many hours together, Splatoon and other games, participated in tourneys and LANs and met up several times.</p>
 			<p>Be sure to join <a href="https://discord.gg/y4vkuMB" target="_blank">our Discord server</a> to join in on the fun!</p>
 			<p class="caption">Pictured: MooDee, Zari, Cynthie and I playing on stage at the Splatoon UK championship 2019 at Insomnia 65. Credit to <tw-link handle="SephSquid"></tw-link> for the picture.</p>
 		</tomika-index-section>
 		<tomika-index-section title="Drawing" background-color="hsl(90,45%,25%)" image="/images/art/chibi-trio.png" image-on-left>
 			<p>One of my most creative activities is drawing. I draw mostly digital art, and generally a more cute and fun style with plenty of colours. Most of my art is Splatoon related, but I plan to branch out on to more given more time.</p>
-			<p>My most ambitious project to date was Chibi-October, a Inktober-like challenge I set myself where I had to release one or more chibi-styled character every day of the month of October 2019.</p>
+			<p>My most ambitious project to date was Chibi-October, a Inktober-like challenge I set myself where I had to release one or more chibi-styled characters every day of the month of October 2019.</p>
 			<p>It was a very fulfilling challenge for me as it helped me draw more consistently, develop a recognisable style, and above all, give back to the many close friends I have in the Splatoon community by drawing their characters!</p>
 			<p class="caption">Pictured, from left to right: Felicity (<tw-link handle="mintymochaa"></tw-link>'s OC, Chibi-October #25), Callie (<tw-link handle="mcprincessdiary"></tw-link>, Chibi-October #14), Lucy (<tw-link handle="heavysplatlings"></tw-link>, Chibi-October #31)</p>
 		</tomika-index-section>
@@ -110,9 +110,15 @@
 					{ fragments: [4, 5], description: 'The japanese for "squid", in roman letters.' },
 					{ fragments: [2, 3, 4], description: 'Tomi (and sometimes Tommy) is my male nickname which I rarely go by these days.' },
 					{ fragments: [3, 4, 5], description: 'Mika is my female nickname. Call me this if you wanna be my friend ;)' },
+					{ fragments: [2, 3, 4, 5], description: 'Japanese female name. Calling me this is acceptable but slightly formal.' },
 					{ fragments: [7], description: 'To add uniqueness, I gave my character a last name. Arome is the japanese for "Tentatek", the brand of sportswear in Splatoon I\'ve been known to like.' }
 				],
 				nameIndex: 0
+			}
+		},
+		computed: {
+			age() {
+				return (new Date(Date.now() - (new Date('1997-10-07')).getTime())).getUTCFullYear() - 1970;
 			}
 		},
 		mounted() {
@@ -121,7 +127,7 @@
 				let nextIndex = this.nameIndex + 1;
 				if (nextIndex >= this.nameOrigin.length) { nextIndex = 0; }
 				this.nameIndex = nextIndex;
-			}, 5000);
+			}, 8000);
 		}
 	}
 </script>

@@ -3,7 +3,7 @@
 		<div id="tomika-nav-bar-nav-button" v-on:click="/*$store.commit('nav/setNavDrawerOpen')*/"
 			:class="{ highlighted: $store.state.nav.navDrawerOpen }">
 			<!--<font-awesome-icon icon="bars" class="bars" />-->
-			<img :src="tomikaInkLogoUrl">
+			<img :src="tomikaInkLogoUrl" alt="">
 		</div>
 		<div id="tomika-quick-navigation">
 
@@ -12,15 +12,15 @@
 			:class="{ highlighted: $store.state.nav.twitchPaneOpen }">
 			<font-awesome-icon :icon="['fab', 'twitch']"/>
 			<svg viewBox="0 0 1 1" class="notification" v-if="$store.state.twitch.activeStream !== null">
-				<path d="M-1 0a1 1 0 0 0 2 0a1 1 0 0 0-2 0z" />
-				<path class="growingCircle" d="M-1 0a1 1 0 0 0 2 0a1 1 0 0 0-2 0z" />
+				<path d="M-1 0a1 1 0 0 0 2 0a1 1 0 0 0-2 0z"></path>
+				<path class="growingCircle" d="M-1 0a1 1 0 0 0 2 0a1 1 0 0 0-2 0z"></path>
 			</svg>
 		</div>
 		<a id="tomika-nav-bar-twitter-button" class="social-button" href="https://twitter.com/TomikaArome/"
 			target="_blank">
 			<font-awesome-icon :icon="['fab', 'twitter']"/>
 			<svg viewBox="0 0 1 1" class="notification" v-if="$store.state.nav.unreadTweets">
-				<path d="M-1 0a1 1 0 0 0 2 0a1 1 0 0 0-2 0z" />
+				<path d="M-1 0a1 1 0 0 0 2 0a1 1 0 0 0-2 0z"></path>
 			</svg>
 		</a>
 		<div id="tomika-nav-bar-discord-button" v-on:click="$store.commit('nav/setDiscordPaneOpen')"
@@ -196,7 +196,7 @@
 		transition: background-color 200ms;
 	}
 	.social-button > svg:not(.notification) {
-		margin: 0px 4px;
+		margin: 0 4px;
 	}
 	.social-button > .notification {
 		width: 5px;
