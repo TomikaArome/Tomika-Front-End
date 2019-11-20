@@ -15,7 +15,7 @@ $ touch src/config.json
 Edit the `config.json` file to include the following configuration
 ```json
 {
-	"back-end-url": "http://localhost"
+    "back-end-url": "http://localhost"
 }
 ```
 * `back-end-url` URL of the back-end, without the trailing `/`.

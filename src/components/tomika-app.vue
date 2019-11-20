@@ -63,7 +63,7 @@
 
 			// Attempt to get user's information from Discord
 			try {
-				const userInfoResponse = await fetch(`${this.$store.state.app.backEnd}/discord/user`, {
+				const userInfoResponse = await fetch(`${this.$store.state.app.backEnd}/user/@me/info`, {
 					method: 'GET',
 					credentials: 'include'
 				});
