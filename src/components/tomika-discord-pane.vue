@@ -72,7 +72,7 @@
 			// Create an event listener to be used to detect when a user has gone through Discord authorisation
 			window.addEventListener('message', async (event) => {
 				if (event.data && event.data.authSucceeded) {
-					const userInfoResponse = await fetch(`${this.$store.state.app.backEnd}/user/@me/info`, {
+					const userInfoResponse = await fetch(`${this.$store.state.app.backEnd}/user/@me`, {
 						method: 'GET',
 						credentials: 'include'
 					});

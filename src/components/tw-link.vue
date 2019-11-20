@@ -1,7 +1,6 @@
 <template>
 	<a target="_blank" :href="`https://twitter.com/${$props.handle}`">
-		{{ $slots.default ? '' : `@${$props.handle}` }}
-		<slot></slot>
+		<slot>@{{ handle }}</slot>
 	</a>
 </template>
 

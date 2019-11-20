@@ -9,6 +9,11 @@
 			<tomika-twitch-pane v-if="$store.state.nav.twitchPaneOpen"></tomika-twitch-pane>
 		</transition>
 		<component class="tomika-content" :is="contentComponent"></component>
+		<div id="tomika-popup-stack">
+			<div class="popup-screen" v-for="(popup, popupStackIndex) in popupStack" :key="popupStackIndex">
+				<tomika-popup :title="popup.title" :tabs="popup.tabs" :content="popup.contentComponent"></tomika-popup>
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -19,6 +24,8 @@
 	import tomikaDiscordPane from './tomika-discord-pane';
 	import tomikaTwitchPane from './tomika-twitch-pane';
 	import tomikaContentIndex from './tomika-content-index';
+	import tomikaPopup from './tomika-popup';
+	import tomikaAdminSettings from './tomika-admin-settings';
 
 	export default {
 		name: 'tomika-app',
@@ -27,11 +34,28 @@
 			tomikaNavDrawer,
 			tomikaDiscordPane,
 			tomikaTwitchPane,
-			tomikaContentIndex
+			tomikaContentIndex,
+			tomikaPopup,
+			tomikaAdminSettings
 		},
 		data() {
 			return {
-				contentComponent: 'tomika-content-index'
+				contentComponent: 'tomika-content-index',
+				popupStack: [
+					{
+						title: 'Settings',
+						tabs: [
+							{
+								image: require('../assets/images/discordDefaultPfp.png'),
+								contentComponent: {
+									components: { tomikaAdminSettings },
+									template: '<tomika-admin-settings></tomika-admin-settings>'
+								}
+							},
+							{ icon: 'times' }
+						]
+					}
+				]
 			}
 		},
 		async created() {
@@ -63,7 +87,7 @@
 
 			// Attempt to get user's information from Discord
 			try {
-				const userInfoResponse = await fetch(`${this.$store.state.app.backEnd}/user/@me/info`, {
+				const userInfoResponse = await fetch(`${this.$store.state.app.backEnd}/user/@me`, {
 					method: 'GET',
 					credentials: 'include'
 				});
@@ -164,6 +188,9 @@
 	* {
 		box-sizing: border-box;
 	}
+	.spacer {
+		flex-grow: 1;
+	}
 	.tomika-pane {
 		background-color: hsl(0,0%,10%);
 		position: fixed;
@@ -203,5 +230,25 @@
 		width: 100%;
 		max-width: 960px;
 		padding: 20px;
+	}
+	#tomika-popup-stack {
+		position: fixed;
+		z-index: 999999;
+		top: 40px;
+		left: 0;
+		width: 100%;
+		height: calc(100% - 40px);
+	}
+	#tomika-popup-stack .popup-screen {
+		background-color: hsla(0,0%,0%,0.7);
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.tomika-popup {
+		max-width: 80%;
+		max-height: 80%;
 	}
 </style>
