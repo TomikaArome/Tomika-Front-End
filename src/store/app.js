@@ -8,7 +8,8 @@ export default {
 	namespaced: true,
 	state: {
 		backEnd: config['back-end-url'],
-		backEndUnreachable: true
+		backEndUnreachable: true,
+		popupStack: []
 	},
 	getters: {
 
@@ -17,6 +18,12 @@ export default {
 		setBackEndUnreachable(state, payload) {
 			if (typeof payload !== 'boolean') { payload = true; }
 			state.backEndUnreachable = payload;
+		},
+		pushPopup(state, payload) {
+			state.popupStack.push(payload);
+		},
+		popPopup(state) {
+			state.popupStack.pop();
 		}
 	},
 	actions: {

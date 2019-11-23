@@ -1,6 +1,6 @@
 <template>
 	<div id="tomika-discord-pane" class="tomika-pane">
-		<svg class="chevron" viewBox="0 0 1 1"><path d="M2 1l-1-1l-1 1z"></path></svg>
+		<svg class="chevron" viewBox="0 0 3 3"><path d="M6 3l-3-3l-3 3"></path></svg>
 		<template v-if="$store.state.app.backEndUnreachable">
 			<div class="title">Tomika.ink's server could not be reached</div>
 			<p>The server is required for Discord authentication and other resources connected to the site.</p>
@@ -11,7 +11,10 @@
 			<tomika-discord-pfp size="64" />
 			<div class="displayName">{{ $store.state.discord.user.username }}</div>
 			<div class="tag">#{{ $store.state.discord.user.discriminator }}</div>
-			<button class="connect-button red notFilled" v-on:click="disconnect">
+			<button class="settings-button" @click="openSettings">
+				<font-awesome-icon icon="cogs"></font-awesome-icon>Settings
+			</button>
+			<button class="connect-button red notFilled" @click="disconnect">
 				<font-awesome-icon icon="lock"></font-awesome-icon>Disconnect
 			</button>
 		</template>
@@ -50,15 +53,16 @@
 	// Import dependencies
 	import Vue from 'vue';
 	import { library } from '@fortawesome/fontawesome-svg-core';
-	import { faCheck, faLock, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+	import { faCheck, faLock, faInfoCircle, faCogs } from '@fortawesome/free-solid-svg-icons';
 	import { faDiscord } from '@fortawesome/free-brands-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 	// Import components
 	import tomikaDiscordPfp from './tomika-discord-pfp';
+	import tomikaAdminSettings from './tomika-admin-settings';
 
 	// Font awesome
-	library.add(faCheck, faLock, faDiscord, faInfoCircle);
+	library.add(faCheck, faLock, faDiscord, faInfoCircle, faCogs);
 	Vue.component('font-awesome-icon', FontAwesomeIcon);
 
 	export default {
@@ -94,6 +98,22 @@
 				if (disconnectResponse.ok && disconnectResponse.status === 200) {
 					this.$store.commit('discord/setUser');
 				}
+			},
+			openSettings() {
+				// TODO Will need a proper location to store this object that isn't in the discord pane, as it's not
+				//  really relevant
+				let settingsPopup = {
+					title: 'Settings',
+					bigPopup: true,
+					tabs: [
+						{
+							text: 'Admin settings',
+							contentComponent: { template: '<tomika-admin-settings></tomika-admin-settings>', components: { tomikaAdminSettings } }
+						}
+					]
+				};
+				this.$store.commit('app/pushPopup', settingsPopup);
+				this.$store.commit('nav/setDiscordPaneOpen', false);
 			}
 		}
 	}
@@ -142,13 +162,13 @@
 		text-align: left;
 		color: hsl(0,0%,70%);
 	}
-	.connect-button {
+	.connect-button, .settings-button {
 		margin-top: 12px;
 	}
 	.connect-button:not(.notFilled) {
 		background-color: #7289DA;
 	}
-	.connect-button > svg {
+	button > svg {
 		margin-right: 6px;
 	}
 	.displayName {

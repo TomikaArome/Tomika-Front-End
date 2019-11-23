@@ -10,8 +10,11 @@
 		</transition>
 		<component class="tomika-content" :is="contentComponent"></component>
 		<div id="tomika-popup-stack">
-			<div class="popup-screen" v-for="(popup, popupStackIndex) in popupStack" :key="popupStackIndex">
-				<tomika-popup :title="popup.title" :tabs="popup.tabs" :content="popup.contentComponent"></tomika-popup>
+			<div class="popup-screen" v-for="(popup, popupStackIndex) in $store.state.app.popupStack"
+				:key="popupStackIndex" @click="clickPopupScreen(popup.noScreenClose, $event)">
+				<tomika-popup :title="popup.title" :noTitle="popup.noTitle" :noCloseButton="popup.noCloseButton"
+					:borderless="popup.borderless" :tabs="popup.tabs" :contentComponent="popup.contentComponent"
+					:prompt="popup.prompt" :choices="popup.choices" :class="{ 'big-popup': popup.bigPopup }"></tomika-popup>
 			</div>
 		</div>
 	</div>
@@ -25,7 +28,6 @@
 	import tomikaTwitchPane from './tomika-twitch-pane';
 	import tomikaContentIndex from './tomika-content-index';
 	import tomikaPopup from './tomika-popup';
-	import tomikaAdminSettings from './tomika-admin-settings';
 
 	export default {
 		name: 'tomika-app',
@@ -35,27 +37,11 @@
 			tomikaDiscordPane,
 			tomikaTwitchPane,
 			tomikaContentIndex,
-			tomikaPopup,
-			tomikaAdminSettings
+			tomikaPopup
 		},
 		data() {
 			return {
-				contentComponent: 'tomika-content-index',
-				popupStack: [
-					{
-						title: 'Settings',
-						tabs: [
-							{
-								image: require('../assets/images/discordDefaultPfp.png'),
-								contentComponent: {
-									components: { tomikaAdminSettings },
-									template: '<tomika-admin-settings></tomika-admin-settings>'
-								}
-							},
-							{ icon: 'times' }
-						]
-					}
-				]
+				contentComponent: 'tomika-content-index'
 			}
 		},
 		async created() {
@@ -67,7 +53,7 @@
 			const clickOutPaneCheck = (ignoreArr, action) => {
 				window.addEventListener('click', (e) => {
 					let target = e.target;
-					while (typeof target === 'object' && target.tagName !== 'HTML') {
+					while (typeof target === 'object' && target !== null && target.tagName !== 'HTML') {
 						if (ignoreArr.indexOf(target.id) !== -1) { return; }
 						target = target.parentNode;
 					}
@@ -110,6 +96,9 @@
 				const right = Math.max(buttonCentre, 4);
 				pane.style.right = right + 'px';
 				pane.querySelector('.chevron').style.right = (chevronCentre - right) + 'px';
+			},
+			clickPopupScreen(noScreenClose, event) {
+				if (!noScreenClose && /popup-screen/.test(event.target.className)) { this.$store.commit('app/popPopup'); }
 			}
 		}
 	}
@@ -196,19 +185,22 @@
 		position: fixed;
 		z-index: 1000000;
 		top: 48px;
-		right: 0px;
+		right: 0;
 		color: #ffffff;
 		padding: 16px;
 		border-radius: 8px;
 		text-align: center;
+		border: 1px solid hsl(180,25%,30%);
 	}
 	.tomika-pane > .chevron {
 		fill: hsl(0,0%,10%);
-		width: 12px;
+		width: 6px;
 		position: absolute;
 		top: -6px;
 		right: 50%;
 		overflow: visible;
+		stroke: hsl(180,25%,30%);
+		stroke-width: 0.5;
 	}
 	.slide-fade-enter-active, .slide-fade-leave-active {
 		transition: transform 150ms ease, opacity 150ms ease;
@@ -240,15 +232,40 @@
 		height: calc(100% - 40px);
 	}
 	#tomika-popup-stack .popup-screen {
-		background-color: hsla(0,0%,0%,0.7);
+		position: absolute;
+		top: 0;
+		left: 0;
 		width: 100%;
 		height: 100%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 	}
-	.tomika-popup {
-		max-width: 80%;
-		max-height: 80%;
+	#tomika-popup-stack .popup-screen:last-child {
+		background-color: hsla(0,0%,0%,0.7);
+	}
+	@media (min-width: 501px) {
+		.tomika-popup {
+			max-width: 80%;
+			max-height: 80%;
+		}
+	}
+	@media (max-width: 500px) {
+		#tomika-popup-stack .tomika-popup.big-popup {
+			border: none;
+			border-radius: 0;
+			width: 100%;
+			height: 100%;
+		}
+	}
+	.big-popup {
+		width: 60%;
+		height: 60%;
+	}
+	@media (max-width: 700px) {
+		.big-popup {
+			width: 80%;
+			height: 80%;
+		}
 	}
 </style>

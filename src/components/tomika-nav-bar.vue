@@ -130,6 +130,7 @@
 		align-items: center;
 		user-select: none;
 		z-index: 1000000;
+		border-bottom: 1px solid hsl(180,25%,30%);
 	}
 	a, a:visited {
 		color: inherit;

@@ -1,28 +1,31 @@
 <template>
-	<div class="tomika-popup">
-		<div class="tomika-popup-tabs">
-			<span></span>
-			<div v-for="(tab, tabIndex) in tabs" :key="tabIndex"
-				:class="{ 'tomika-popup-tab': !tab.spacer, 'tomika-popup-tab-spacer': tab.spacer, selected: selectedTab
-				=== tabIndex }" @click="selectedTab = tabIndex">
-				<div v-if="!tab.spacer && (tab.image || tab.icon)" class="tomika-popup-tab-icon">
-					<img v-if="tab.image" :src="tab.image">
-					<font-awesome-icon :icon="tab.icon" v-if="tab.icon && !tab.image"></font-awesome-icon>
-				</div>
-				<div class="tomika-popup-tab-text" v-if="!tab.spacer && tab.text">
-					<h2>{{ tab.text }}</h2>
-					<div v-if="tab.subtext" class="subtext">{{ tab.subtext }}</div>
-				</div>
-			</div>
+	<div class="tomika-popup" :class="{ borderless: $props.borderless }">
+		<div v-if="!(noTitle || filteredChoices && filteredChoices.length)" class="tomika-popup-title-row">
+			<h2 class="tomika-popup-title">{{ title }}</h2>
+			<div class="spacer"></div>
+			<div v-if="!noCloseButton" class="tomika-popup-close-button" @click="close"><font-awesome-icon icon="times"></font-awesome-icon></div>
 		</div>
 		<div class="tomika-popup-container">
-			<div class="tomika-popup-title-row">
-				<h2 class="tomika-popup-title">{{ title }}</h2>
-				<div class="spacer"></div>
-				<div class="tomika-popup-close-button"><div><font-awesome-icon icon="times"></font-awesome-icon></div></div>
+			<div class="tomika-popup-tabs">
+				<div v-for="(tab, tabIndex) in tabs" :key="tabIndex"
+					:class="{ 'tomika-popup-tab': !tab.spacer, 'tomika-popup-tab-spacer': tab.spacer, selected: selectedTab
+					=== tabIndex }" @click="selectedTab = tabIndex">
+					<div v-if="!tab.spacer && (tab.image || tab.icon)" class="tomika-popup-tab-icon">
+						<img v-if="tab.image" :src="tab.image">
+						<font-awesome-icon :icon="tab.icon" v-if="tab.icon && !tab.image"></font-awesome-icon>
+					</div>
+					<div class="tomika-popup-tab-text" v-if="!tab.spacer && tab.text">
+						<h2>{{ tab.text }}</h2>
+						<div v-if="tab.subtext" class="subtext">{{ tab.subtext }}</div>
+					</div>
+				</div>
 			</div>
 			<div class="tomika-popup-content">
-				<component :is="content"></component>
+				<div class="tomika-popup-prompt" v-if="filteredChoices && filteredChoices.length && prompt">{{ prompt }}</div>
+				<component v-else :is="content"></component>
+				<div class="tomika-popup-choices" v-if="choices && this.choices.length">
+					<button v-for="(choice, index) in filteredChoices" :key="index" @click="choice.buttonAction(close)">{{ choice.buttonText }}</button>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -32,18 +35,28 @@
 	/**
 	 * This element merits explanation for its number of props:
 	 *  - title: title of the popup, will display just above the content [REQUIRED]
+	 *  - borderless: if set to true, the popup won't have borders and the corners won't be rounded. Useful for full
+	 *      containers. Defaults to false
+	 *  - noTitle: if set to true, the title bar won't be displayed
+	 *  - noCLoseButton: if set to true, the close button won't be displayed. Note that prompt popups never have close
+	 *      buttons
+	 *  - noScreenClose: if set to true, the popup won't close from clicking the screen (popup stack only)
+	 *  - bigPopup: if set to true, the popup will be fixed in size and will spread across the entire screen on smaller
+	 *      screens (popup stack only)
 	 *  - ONE OF THE FOLLOWING:
 	 *    - contentComponent: the component that will be displayed (no tabs solution)
 	 *    OR
 	 *    - tabs: an array of objects with:
 	 *      - contentComponent: the component that will be displayed when the tab is selected
 	 *      - text: the text describing what the tab is about
+	 *      - subtext: some smaller text underneath
 	 *    OR
 	 *    - prompt: a question or prompt to be displayed in the popup
 	 *    - choices: an array of objects representing the choices for the prompt, with:
 	 *      - buttonText: the text inside the button
 	 *      - buttonClass: a class name to style the button
-	 *      - buttonTrigger: a callback function for when the button is activated
+	 *      - buttonAction: a callback function for when the button is activated, the first parameter of this function
+	 *          is the function to close the popup
 	 */
 
 	// Import dependencies
@@ -65,7 +78,13 @@
 		},
 		props: {
 			title: String,
-			tabs: Array
+			contentComponent: Object,
+			borderless: { type: Boolean, default: false },
+			noTitle: { type: Boolean, default: false },
+			noCloseButton: { type: Boolean, default: false },
+			tabs: Array,
+			prompt: String,
+			choices: Array
 		},
 		computed: {
 			content() {
@@ -73,6 +92,14 @@
 					return this.tabs[this.selectedTab].contentComponent || this.contentComponent || 'div';
 				}
 				return this.contentComponent || 'div';
+			},
+			filteredChoices() {
+				return this.choices ? this.choices.filter((choice) => { return typeof choice.buttonAction === 'function' }) : [];
+			}
+		},
+		methods: {
+			close() {
+				this.$store.commit('app/popPopup');
 			}
 		}
 	}
@@ -81,132 +108,128 @@
 <style scoped>
 	.tomika-popup {
 		display: flex;
+		flex-direction: column;
+		background-color: hsl(0,0%,10%);
+	}
+	.tomika-popup:not(.borderless) {
+		border: 1px solid hsl(180,25%,30%);
+		border-radius: 16px;
+		overflow: hidden;
+	}
+	.tomika-popup-container {
+		display: flex;
+		flex-grow: 1;
 		flex-direction: row;
+	}
+	.tomika-popup-title-row {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		padding: 0 0 0 20px;
+		height: 40px;
+		background-color: hsl(0,0%,5%);
+	}
+	.tomika-popup-title {
+		margin: 0;
+		font-sizse: 20px;
+		text-shadow: -2px -2px hsla(0,0%,0%,1);
+	}
+	.tomika-popup-close-button {
+		width: 25px;
+		height: 25px;
+		margin-right: 6px;
+		border-radius: 100%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		color: hsl(0,0%,80%);
+		cursor: pointer;
+		user-select: none;
+		transition: background-color 150ms;
+	}
+	.tomika-popup-close-button:hover {
+		background-color: hsl(0,25%,30%);
+		color: hsl(0,25%,80%);
 	}
 	.tomika-popup-tabs {
 		display: flex;
 		flex-direction: column;
 		margin-right: -1px;
-		position: relative;
-		z-index: 1;
-		padding: 16px 0;
-	}
-	.tomika-popup-tabs > span {
-		display: block;
-		height: 40px;
+		background-color: hsl(0,0%,2%);
+		color: hsl(0,0%,80%);
 	}
 	.tomika-popup-tab-spacer {
-		margin-top: 20px;
+		padding-top: 16px;
 	}
 	.tomika-popup-tab {
-		position: relative;
 		display: flex;
 		align-items: center;
-		background-color: hsl(0,0%,10%);
-		border: 1px solid hsl(180,25%,30%);
-		border-right: none;
-		border-radius: 25px 0 0 25px;
 		cursor: pointer;
 		user-select: none;
 		height: 50px;
 		min-width: 25px;
-		margin: 2px 0;
+		transition: background-color 150ms;
+		box-sizing: border-box;
+		padding: 0 8px 0 8px;
+		background-color: hsl(0,0%,5%);
 	}
-	.tomika-popup-tab:nth-of-type(1) { margin-top: 0; }
-	.tomika-popup-tab:nth-last-of-type(1) { margin-bottom: 0; }
-	.tomika-popup-tab > * {
-		opacity: 0.5;
-		transition: opacity 150ms;
-	}
-	.tomika-popup-tab:hover > *, .tomika-popup-tab.selected > * {
-		opacity: 1;
-	}
-	.tomika-popup-tab.selected > .tomika-popup-tab-icon {
-		background-color: hsla(0,0%,100%,0.1);
+	.tomika-popup-tab:hover, .selected {
+		background-color: hsl(0,0%,10%);
 	}
 	.tomika-popup-tab-icon {
+		position: relative;
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		position: absolute;
-		top: 0;
-		left: 0;
-		height: 48px;
-		width: 48px;
-		border-radius: 100%;
-		overflow: hidden;
+		height: 38px;
+		width: 38px;
 		font-size: 24px;
 		transition: background-color 150ms;
 	}
 	.tomika-popup-tab-icon img {
 		width: 100%;
+		border-radius: 100%;
 	}
 	.tomika-popup-tab-text {
-		position: relative;
-		z-index: 1;
-		margin: 0 8px 0 16px;
+		margin: 0 8px;
 		white-space: nowrap;
-	}
-	.tomika-popup-tab-icon + .tomika-popup-tab-text {
-		margin-left: 58px;
 	}
 	.tomika-popup-tab-text > h2 {
 		margin: 0;
 		font-size: 16px;
-		color: hsl(0,0%,80%);
 		line-height: 20px;
 	}
 	.tomika-popup-tab-text > .subtext {
 		color: hsl(0,0%,50%);
 		font-size: 12px;
 	}
-	.tomika-popup-container {
+	.tomika-popup-content {
 		display: flex;
 		flex-direction: column;
+		flex-grow: 1;
+		min-width: 200px;
+		min-height: 100px;
 	}
-	.tomika-popup-title-row {
-		display: flex;
-		flex-direction: row;
-		padding: 0 20px;
-		height: 40px;
+	.tomika-popup-content > :first-child {
+		flex-grow: 1;
 	}
-	.tomika-popup-title {
-		margin: 0;
-		font-size: 20px;
-		text-shadow: -2px -2px hsla(0,0%,0%,1);
-	}
-	.tomika-popup-close-button {
-		width: 30px;
-		height: 15px;
-		position: relative;
-		z-index: 1;
-		box-sizing: border-box;
-		align-self: flex-end;
-		color: hsl(0,0%,80%);
-		border: 1px solid hsl(180,25%,30%);
-		border-bottom: none;
-		border-radius: 15px 15px 0 0;
-		cursor: pointer;
-		user-select: none;
-	}
-	.tomika-popup-close-button > div {
-		background-color: hsl(0,0%,10%);
-		border-radius: 15px;
+	.tomika-popup-prompt {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		width: 28px;
-		height: 28px;
-		transition: background-color 150ms;
+		text-align: center;
+		font-size: 16px;
+		padding: 12px 24px;
+		max-width: 400px;
 	}
-	.tomika-popup-close-button > div:hover {
-		background-color: hsl(0,25%,30%);
-		color: hsl(0,25%,80%);
+	.tomika-popup-choices {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		padding: 8px 0;
 	}
-	.tomika-popup-content {
-		background-color: hsl(0,0%,10%);
-		border: 1px solid hsl(180,25%,30%);
-		border-radius: 16px;
-		flex-grow: 1;
-	}
+	.tomika-popup-choices > button { margin: 0 4px }
+	.tomika-popup-choices > button:first-child { margin-left: 16px; }
+	.tomika-popup-choices > button:last-child { margin-right: 16px; }
 </style>

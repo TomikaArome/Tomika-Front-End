@@ -1,14 +1,14 @@
 <template>
 	<div id="tomika-twitch-pane" class="tomika-pane">
-		<svg class="chevron" viewBox="0 0 1 1"><path d="M2 1l-1-1l-1 1z"></path></svg>
+		<svg class="chevron" viewBox="0 0 3 3"><path d="M6 3l-3-3l-3 3"></path></svg>
 		<div id="mini-twitch-player"></div>
 		<template v-if="$store.state.twitch.activeStream !== null">
 			<div class="image-row">
 				<div><img class="box-art" :src="activeStream.game.box_art_url"></div>
 				<div>
 					<div class="status"><svg viewBox="0 0 1 1" class="notification" v-if="activeStream !== null">
-						<path d="M-1 0a1 1 0 0 0 2 0a1 1 0 0 0-2 0z" />
-						<path class="growingCircle" d="M-1 0a1 1 0 0 0 2 0a1 1 0 0 0-2 0z" />
+						<path d="M-1 0a1 1 0 0 0 2 0a1 1 0 0 0-2 0z"></path>
+						<path class="growingCircle" d="M-1 0a1 1 0 0 0 2 0a1 1 0 0 0-2 0z"></path>
 					</svg>Currently live!</div>
 					<div class="game"><span class="playing">Playing</span> {{ activeStream.game.name }}</div>
 					<div class="title">{{ activeStream.title }}</div>
