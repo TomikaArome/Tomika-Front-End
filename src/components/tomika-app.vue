@@ -9,11 +9,11 @@
 			<tomika-twitch-pane v-if="$store.state.nav.twitchPaneOpen"></tomika-twitch-pane>
 		</transition>
 		<component class="tomika-content" :is="contentComponent"></component>
-		<div id="tomika-popup-stack">
+		<div v-if="$store.state.app.popupStack.length" id="tomika-popup-stack">
 			<div class="popup-screen" v-for="(popup, popupStackIndex) in $store.state.app.popupStack"
 				:key="popupStackIndex" @click="clickPopupScreen(popup.noScreenClose, $event)">
-				<tomika-popup :title="popup.title" :noTitle="popup.noTitle" :noCloseButton="popup.noCloseButton"
-					:borderless="popup.borderless" :tabs="popup.tabs" :contentComponent="popup.contentComponent"
+				<tomika-popup :title="popup.title" :noTitle="popup.noTitle" :contentComponent="popup.contentComponent"
+					:borderless="popup.borderless" :tabs="popup.tabs" :closeButtonAction="() => { $store.commit('app/popPopup'); }"
 					:prompt="popup.prompt" :choices="popup.choices" :class="{ 'big-popup': popup.bigPopup }"></tomika-popup>
 			</div>
 		</div>
@@ -28,6 +28,12 @@
 	import tomikaTwitchPane from './tomika-twitch-pane';
 	import tomikaContentIndex from './tomika-content-index';
 	import tomikaPopup from './tomika-popup';
+	import tomikaAdminSettings from './tomika-admin-settings';
+	import tomikaGuildSettings from './tomika-guild-settings';
+
+	// Import requests
+	import { userInfoReq } from '../requests/user';
+	import { infoReq } from '../requests/discordbot';
 
 	export default {
 		name: 'tomika-app',
@@ -44,7 +50,7 @@
 				contentComponent: 'tomika-content-index'
 			}
 		},
-		async created() {
+		async mounted() {
 			/**
 			 * Function which checks if a mouse click was outside the specified ignore elements
 			 * @param ignoreArr Array of IDs that when the associated element is pressed, the pane will not be closed
@@ -72,18 +78,14 @@
 			});
 
 			// Attempt to get user's information from Discord
-			try {
-				const userInfoResponse = await fetch(`${this.$store.state.app.backEnd}/user/@me`, {
-					method: 'GET',
-					credentials: 'include'
-				});
-				if (userInfoResponse.ok) {
-					this.$store.commit('app/setBackEndUnreachable', false);
-					this.$store.commit('discord/setUser', await userInfoResponse.json());
+			userInfoReq();
+
+			// Create an event listener to be used to detect when a user has gone through Discord authorisation
+			window.addEventListener('message', async (event) => {
+				if (event.data && event.data.authSucceeded) {
+					await userInfoReq();
 				}
-			} catch (err) {
-				this.$store.commit('app/setBackEndUnreachable');
-			}
+			});
 		},
 		methods: {
 			positionPane(buttonId, paneId) {
@@ -99,6 +101,45 @@
 			},
 			clickPopupScreen(noScreenClose, event) {
 				if (!noScreenClose && /popup-screen/.test(event.target.className)) { this.$store.commit('app/popPopup'); }
+			},
+			async openSettings() {
+				// Get bot details
+				await infoReq();
+				const botInfo = this.$store.state.discord.bot;
+				// The user settings tab is always available
+				let settingsTabs = [/*{
+					spacer: true
+				}*/];
+				// Check if admin
+				if (this.$store.state.discord.user.admin) {
+					settingsTabs.push({
+						image: botInfo.avatarUrl,
+						contentComponent: {
+							template: '<tomika-admin-settings></tomika-admin-settings>',
+							components: { tomikaAdminSettings }
+						}
+					});
+					settingsTabs.push({ spacer: true });
+				}
+				// Cycle through guilds and add a tab for each guild the user is a member of
+				for (let i in botInfo.guilds.filter((guild) => { return guild.memberOf; })) {
+					settingsTabs.push({
+						image: botInfo.guilds[i].iconUrl,
+						contentComponent: {
+							template: '<tomika-guild-settings :guild="guild"></tomika-guild-settings>',
+							components: { tomikaGuildSettings },
+							data() { return { guild: botInfo.guilds[i] }; }
+						}
+					});
+				}
+				// Create popup object
+				let settingsPopup = {
+					title: 'Settings',
+					bigPopup: true,
+					tabs: settingsTabs
+				};
+				this.$store.commit('app/pushPopup', settingsPopup);
+				this.$store.commit('nav/setDiscordPaneOpen', false);
 			}
 		}
 	}
@@ -143,12 +184,16 @@
 		cursor: pointer;
 		outline: none;
 	}
-	button:after {
+	button:disabled {
+		opacity: 0.5;
+		cursor: default;
+	}
+	button:not(:disabled):after {
 		content: "";
 		pointer-events: none;
 		position: absolute;
-		top: 0px;
-		left: 0px;
+		top: 0;
+		left: 0;
 		width: 100%;
 		height: 100%;
 		border-radius: 8px;
@@ -260,7 +305,7 @@
 	}
 	.big-popup {
 		width: 60%;
-		height: 60%;
+		height: 70%;
 	}
 	@media (max-width: 700px) {
 		.big-popup {

@@ -4,8 +4,9 @@ import Vuex from 'vuex';
 
 // Import store modules
 import appModule from './app';
-import navModule from './nav';
 import discordModule from './discord';
+import navModule from './nav';
+import requestModule from './request';
 import twitchModule from './twitch';
 import twitterModule from './twitter';
 
@@ -27,8 +28,9 @@ export default new Vuex.Store({
 	},
 	modules: {
 		app: appModule,
-		nav: navModule,
 		discord: discordModule,
+		nav: navModule,
+		request: requestModule,
 		twitch: twitchModule,
 		twitter: twitterModule
 	}

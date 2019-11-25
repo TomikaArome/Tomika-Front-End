@@ -3,13 +3,15 @@
 		<div v-if="!(noTitle || filteredChoices && filteredChoices.length)" class="tomika-popup-title-row">
 			<h2 class="tomika-popup-title">{{ title }}</h2>
 			<div class="spacer"></div>
-			<div v-if="!noCloseButton" class="tomika-popup-close-button" @click="close"><font-awesome-icon icon="times"></font-awesome-icon></div>
+			<div v-if="closeButtonAction" class="tomika-popup-close-button" @click="closeButtonAction">
+				<font-awesome-icon icon="times"></font-awesome-icon>
+			</div>
 		</div>
 		<div class="tomika-popup-container">
 			<div class="tomika-popup-tabs">
 				<div v-for="(tab, tabIndex) in tabs" :key="tabIndex"
-					:class="{ 'tomika-popup-tab': !tab.spacer, 'tomika-popup-tab-spacer': tab.spacer, selected: selectedTab
-					=== tabIndex }" @click="selectedTab = tabIndex">
+					:class="{ 'tomika-popup-tab': !tab.spacer, 'tomika-popup-tab-spacer': tab.spacer,
+					selected: selectedTab === tabIndex }" @click="clickTab(tabIndex)">
 					<div v-if="!tab.spacer && (tab.image || tab.icon)" class="tomika-popup-tab-icon">
 						<img v-if="tab.image" :src="tab.image">
 						<font-awesome-icon :icon="tab.icon" v-if="tab.icon && !tab.image"></font-awesome-icon>
@@ -22,9 +24,12 @@
 			</div>
 			<div class="tomika-popup-content">
 				<div class="tomika-popup-prompt" v-if="filteredChoices && filteredChoices.length && prompt">{{ prompt }}</div>
-				<component v-else :is="content"></component>
+				<keep-alive v-else>
+					<component :is="content"></component>
+				</keep-alive>
 				<div class="tomika-popup-choices" v-if="choices && this.choices.length">
-					<button v-for="(choice, index) in filteredChoices" :key="index" @click="choice.buttonAction(close)">{{ choice.buttonText }}</button>
+					<button v-for="(choice, index) in filteredChoices" :key="index"
+						@click="choice.buttonAction(closeButtonAction)">{{ choice.buttonText }}</button>
 				</div>
 			</div>
 		</div>
@@ -38,8 +43,8 @@
 	 *  - borderless: if set to true, the popup won't have borders and the corners won't be rounded. Useful for full
 	 *      containers. Defaults to false
 	 *  - noTitle: if set to true, the title bar won't be displayed
-	 *  - noCLoseButton: if set to true, the close button won't be displayed. Note that prompt popups never have close
-	 *      buttons
+	 *  - closeButtonAction: function that will be triggered by the close button. If omitted, the close button will not
+	 *      be displayed
 	 *  - noScreenClose: if set to true, the popup won't close from clicking the screen (popup stack only)
 	 *  - bigPopup: if set to true, the popup will be fixed in size and will spread across the entire screen on smaller
 	 *      screens (popup stack only)
@@ -81,14 +86,14 @@
 			contentComponent: Object,
 			borderless: { type: Boolean, default: false },
 			noTitle: { type: Boolean, default: false },
-			noCloseButton: { type: Boolean, default: false },
+			closeButtonAction: Function,
 			tabs: Array,
 			prompt: String,
 			choices: Array
 		},
 		computed: {
 			content() {
-				if (this.tabs) {
+				if (this.tabs.length > 0) {
 					return this.tabs[this.selectedTab].contentComponent || this.contentComponent || 'div';
 				}
 				return this.contentComponent || 'div';
@@ -98,8 +103,10 @@
 			}
 		},
 		methods: {
-			close() {
-				this.$store.commit('app/popPopup');
+			clickTab(tabIndex) {
+				if (!this.tabs[tabIndex].spacer) {
+					this.selectedTab = tabIndex;
+				}
 			}
 		}
 	}
@@ -108,6 +115,7 @@
 <style scoped>
 	.tomika-popup {
 		display: flex;
+		position: relative;
 		flex-direction: column;
 		background-color: hsl(0,0%,10%);
 	}
@@ -118,8 +126,10 @@
 	}
 	.tomika-popup-container {
 		display: flex;
+		position: relative;
 		flex-grow: 1;
 		flex-direction: row;
+		height: calc(100% - 40px);
 	}
 	.tomika-popup-title-row {
 		display: flex;
@@ -131,7 +141,7 @@
 	}
 	.tomika-popup-title {
 		margin: 0;
-		font-sizse: 20px;
+		font-size: 20px;
 		text-shadow: -2px -2px hsla(0,0%,0%,1);
 	}
 	.tomika-popup-close-button {
@@ -154,11 +164,10 @@
 	.tomika-popup-tabs {
 		display: flex;
 		flex-direction: column;
-		margin-right: -1px;
 		background-color: hsl(0,0%,2%);
 		color: hsl(0,0%,80%);
 	}
-	.tomika-popup-tab-spacer {
+	.tomika-popup-tab-spacer:not(:first-child):not(:last-child) {
 		padding-top: 16px;
 	}
 	.tomika-popup-tab {
@@ -171,7 +180,7 @@
 		transition: background-color 150ms;
 		box-sizing: border-box;
 		padding: 0 8px 0 8px;
-		background-color: hsl(0,0%,5%);
+		background-color: hsl(0,0%,7%);
 	}
 	.tomika-popup-tab:hover, .selected {
 		background-color: hsl(0,0%,10%);
@@ -209,6 +218,24 @@
 		flex-grow: 1;
 		min-width: 200px;
 		min-height: 100px;
+		overflow-y: scroll;
+		overflow-x: hidden;
+		scrollbar-width: thin;
+		scrollbar-color: hsl(0,0%,20%) hsl(0,0%,10%);
+	}
+	.tomika-popup-content::-webkit-scrollbar {
+		width: 10px;
+		background-color: hsl(0,0%,10%);
+	}
+	.tomika-popup-content::-webkit-scrollbar-thumb {
+		background-color: hsl(0,0%,20%);
+		outline: 1px solid slategrey;
+		border-radius: 5px;
+		border: 2px solid hsl(0,0%,10%);
+		transition: background-color 150ms;
+	}
+	.tomika-popup-content::-webkit-scrollbar-thumb:hover {
+		background-color: hsl(0,0%,30%);
 	}
 	.tomika-popup-content > :first-child {
 		flex-grow: 1;

@@ -11,7 +11,7 @@
 			<tomika-discord-pfp size="64" />
 			<div class="displayName">{{ $store.state.discord.user.username }}</div>
 			<div class="tag">#{{ $store.state.discord.user.discriminator }}</div>
-			<button class="settings-button" @click="openSettings">
+			<button v-if="$store.state.discord.user.admin" class="settings-button" @click="$parent.openSettings">
 				<font-awesome-icon icon="cogs"></font-awesome-icon>Settings
 			</button>
 			<button class="connect-button red notFilled" @click="disconnect">
@@ -59,7 +59,9 @@
 
 	// Import components
 	import tomikaDiscordPfp from './tomika-discord-pfp';
-	import tomikaAdminSettings from './tomika-admin-settings';
+
+	// Import requests
+	import { disconnectReq } from '../requests/user';
 
 	// Font awesome
 	library.add(faCheck, faLock, faDiscord, faInfoCircle, faCogs);
@@ -72,48 +74,13 @@
 		},
 		mounted() {
 			this.$parent.positionPane('tomika-nav-bar-discord-button', 'tomika-discord-pane');
-
-			// Create an event listener to be used to detect when a user has gone through Discord authorisation
-			window.addEventListener('message', async (event) => {
-				if (event.data && event.data.authSucceeded) {
-					const userInfoResponse = await fetch(`${this.$store.state.app.backEnd}/user/@me`, {
-						method: 'GET',
-						credentials: 'include'
-					});
-					if (userInfoResponse.ok) {
-						this.$store.commit('discord/setUser', await userInfoResponse.json());
-					}
-				}
-			});
 		},
 		methods: {
 			clickConnectButton() {
 				window.open(`${this.$store.state.app.backEnd}/discord/connect`);
 			},
 			async disconnect() {
-				let disconnectResponse = await fetch(`${this.$store.state.app.backEnd}/discord/disconnect`, {
-					method: 'POST',
-					credentials: 'include'
-				});
-				if (disconnectResponse.ok && disconnectResponse.status === 200) {
-					this.$store.commit('discord/setUser');
-				}
-			},
-			openSettings() {
-				// TODO Will need a proper location to store this object that isn't in the discord pane, as it's not
-				//  really relevant
-				let settingsPopup = {
-					title: 'Settings',
-					bigPopup: true,
-					tabs: [
-						{
-							text: 'Admin settings',
-							contentComponent: { template: '<tomika-admin-settings></tomika-admin-settings>', components: { tomikaAdminSettings } }
-						}
-					]
-				};
-				this.$store.commit('app/pushPopup', settingsPopup);
-				this.$store.commit('nav/setDiscordPaneOpen', false);
+				disconnectReq();
 			}
 		}
 	}
