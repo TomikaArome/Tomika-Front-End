@@ -9,7 +9,7 @@
 			<tomika-twitch-pane v-if="$store.state.nav.twitchPaneOpen"></tomika-twitch-pane>
 		</transition>
 		<component class="tomika-content" :is="contentComponent"></component>
-		<div id="tomika-popup-stack">
+		<div v-if="$store.state.nav.settingsOpen || $store.state.app.popupStack.length" id="tomika-popup-stack">
 			<div v-if="$store.state.nav.settingsOpen" class="popup-screen"
 				@click="clickPopupScreen(() => {$store.commit('nav/setSettingsOpen', false)}, $event)">
 				<tomika-settings class="big-popup"></tomika-settings>
@@ -23,6 +23,10 @@
 </template>
 
 <script>
+	// Import dependencies
+	import Vue from 'vue';
+	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+
 	// Import components
 	import tomikaNavBar from './nav/tomika-nav-bar';
 	import tomikaNavDrawer from './nav/tomika-nav-drawer';
@@ -33,6 +37,10 @@
 
 	// Import requests
 	import { userInfoReq } from '../requests/user';
+	import { infoReq as botInfoReq } from '../requests/discordbot';
+
+	// Font awesome
+	Vue.component('font-awesome-icon', FontAwesomeIcon);
 
 	export default {
 		name: 'tomika-app',
@@ -76,8 +84,9 @@
 				this.$store.commit('nav/setTwitchPaneOpen', false);
 			});
 
-			// Attempt to get user's information from Discord
+			// Attempt to get user and bot's information from Discord
 			userInfoReq();
+			botInfoReq();
 
 			// Create an event listener to be used to detect when a user has gone through Discord authorisation
 			window.addEventListener('message', async (event) => {
@@ -173,6 +182,10 @@
 	button.notFilled.red {
 		border-color: hsl(0,40%,50%);
 		color: hsl(0,40%,50%);
+	}
+	button.red {
+		background-color: hsl(0,30%,25%);
+		color: hsl(0,50%,75%);
 	}
 	button:hover:after {
 		opacity: 0.2;

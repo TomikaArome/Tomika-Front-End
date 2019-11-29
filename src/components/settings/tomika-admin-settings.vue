@@ -5,7 +5,7 @@
 			<img :src="$store.state.discord.bot.avatarUrl" alt="">
 			<div class="bot-main-info">
 				<div class="bot-name">
-					<span class="displayName">{{ $store.state.discord.bot.username }}</span>
+					<span class="display-name">{{ $store.state.discord.bot.username }}</span>
 					<span class="discriminator">#{{ $store.state.discord.bot.discriminator }}</span>
 				</div>
 				<div class="bot-status">
@@ -139,15 +139,15 @@
 	.bot-info > img {
 		width: 60px;
 		border-radius: 100%;
-		margin-right: 12px;
 	}
 	.bot-main-info {
 		flex-grow: 1;
+		margin-left: 12px;
 	}
 	.bot-name {
 		margin-bottom: 0.1em;
 	}
-	.displayName {
+	.display-name {
 		font-size: 1.5em;
 	}
 	.discriminator {

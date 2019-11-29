@@ -1,7 +1,10 @@
 <template>
 	<div id="tomika-discord-pane" class="tomika-pane">
 		<svg class="chevron" viewBox="0 0 3 3"><path d="M6 3l-3-3l-3 3"></path></svg>
-		<template v-if="$store.state.app.backEndUnreachable">
+		<template v-if="$store.state.request.progress['/user/@me']">
+			<div class="title" style="margin:0">Connecting...</div>
+		</template>
+		<template v-else-if="$store.state.app.backEndUnreachable">
 			<div class="title">Tomika.ink's server could not be reached</div>
 			<p>The server is required for Discord authentication and other resources connected to the site.</p>
 			<p>Try refreshing the page later, or contact <a target="_blank" href="http://twitter.com/TomikaArome">@TomikaArome</a> on Twitter or Tomika#4051 on Discord.</p>
@@ -13,9 +16,6 @@
 			<div class="tag">#{{ $store.state.discord.user.discriminator }}</div>
 			<button v-if="$store.state.discord.user.admin" class="settings-button" @click="openSettings">
 				<font-awesome-icon icon="cogs"></font-awesome-icon>Settings
-			</button>
-			<button class="connect-button red notFilled" @click="disconnect">
-				<font-awesome-icon icon="lock"></font-awesome-icon>Disconnect
 			</button>
 		</template>
 		<template v-else>
@@ -60,9 +60,6 @@
 	// Import components
 	import tomikaDiscordPfp from '../wrappers/tomika-discord-pfp';
 
-	// Import requests
-	import { disconnectReq } from '../../requests/user';
-
 	// Font awesome
 	library.add(faCheck, faLock, faDiscord, faInfoCircle, faCogs);
 	Vue.component('font-awesome-icon', FontAwesomeIcon);
@@ -79,11 +76,8 @@
 			clickConnectButton() {
 				window.open(`${this.$store.state.app.backEnd}/discord/connect`);
 			},
-			async disconnect() {
-				disconnectReq();
-			},
 			openSettings() {
-				this.$store.commit('nav/setSettingsOpen', true);
+				this.$store.commit('nav/setSettingsOpen', !this.$store.state.nav.settingsOpen);
 				this.$store.commit('nav/setDiscordPaneOpen', false);
 			}
 		}

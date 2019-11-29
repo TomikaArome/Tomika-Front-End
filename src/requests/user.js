@@ -25,6 +25,7 @@ const disconnectReq = async () => {
 	let disconnect = await f('/discord/disconnect', { method: 'POST' });
 	if (disconnect.success) {
 		store.commit('discord/setUser');
+		store.commit('nav/setSettingsOpen', false);
 	}
 };
 

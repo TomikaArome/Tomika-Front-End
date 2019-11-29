@@ -3,20 +3,14 @@
 </template>
 
 <script>
-	// Import dependencies
-	import { library } from '@fortawesome/fontawesome-svg-core';
-	import { faUserCog } from '@fortawesome/free-solid-svg-icons';
-
 	// Import components
 	import tomikaPopup from '../tomika-popup';
+	import tomikaUserSettings from './tomika-user-settings';
 	import tomikaAdminSettings from './tomika-admin-settings';
 	import tomikaGuildSettings from './tomika-guild-settings';
 
 	// Import requests
 	import { infoReq } from '../../requests/discordbot';
-
-	// Font awesome
-	library.add(faUserCog);
 
 	export default {
 		name: 'tomika-settings',
@@ -27,7 +21,11 @@
 			tabs() {
 				// The user settings tab is always available
 				let settingsTabs = [{
-					icon: 'user-cog'
+					image: this.$store.state.discord.user.avatarUrl,
+					contentComponent: {
+						template: '<tomika-user-settings></tomika-user-settings>',
+						components: { tomikaUserSettings }
+					}
 				}];
 				// Get bot details
 				const botInfo = this.$store.state.discord.bot;
@@ -38,7 +36,7 @@
 							image: botInfo.avatarUrl,
 							contentComponent: {
 								template: '<tomika-admin-settings></tomika-admin-settings>',
-								components: {tomikaAdminSettings}
+								components: { tomikaAdminSettings }
 							}
 						});
 						settingsTabs.push({spacer: true});
@@ -52,7 +50,7 @@
 								image: botInfo.guilds[i].iconUrl,
 								contentComponent: {
 									template: '<tomika-guild-settings :guild="guild"></tomika-guild-settings>',
-									components: {tomikaGuildSettings},
+									components: { tomikaGuildSettings },
 									data() {
 										return {guild: botInfo.guilds[i]};
 									}

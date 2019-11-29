@@ -25,7 +25,11 @@
 		</a>
 		<div id="tomika-nav-bar-discord-button" v-on:click="$store.commit('nav/setDiscordPaneOpen')"
 			:class="{ highlighted: $store.state.nav.discordPaneOpen }" class="animatedDiscordPfpOnHover">
-			<div v-if="$store.state.app.backEndUnreachable">
+			<div v-if="$store.state.request.progress['/user/@me']">
+				<div class="displayName">Connecting</div>
+				<div class="tag">Please wait...</div>
+			</div>
+			<div v-else-if="$store.state.app.backEndUnreachable">
 				<div class="displayName">Server unreachable</div>
 				<div class="tag">Please try again later</div>
 			</div>
