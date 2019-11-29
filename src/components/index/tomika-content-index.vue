@@ -49,7 +49,7 @@
 
 <script>
 	// Import components
-	import twLink from './tw-link';
+	import twLink from '../wrappers/tw-link';
 	import tomikaImageBanner from './tomika-image-banner';
 	import tomikaIndexSection from './tomika-index-section';
 

@@ -26,14 +26,14 @@
 				if (this.$store.getters['discord/connected']) {
 					return `https://cdn.discordapp.com/avatars/${this.userId}/${this.avatar}.png`;
 				}
-				return require('../assets/images/discordDefaultPfp.png');
+				return require('../../assets/images/discordDefaultPfp.png');
 			},
 			pfpUrlAnimated() {
 				if (this.$store.getters['discord/connected']) {
 					const ext = this.avatarAnimated ? 'gif' : 'png';
 					return `https://cdn.discordapp.com/avatars/${this.userId}/${this.avatar}.${ext}`;
 				}
-				return require('../assets/images/discordDefaultPfp.png');
+				return require('../../assets/images/discordDefaultPfp.png');
 			}
 		}
 	}

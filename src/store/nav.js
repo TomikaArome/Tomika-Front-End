@@ -8,6 +8,9 @@ export default {
 		twitchPaneOpen: false,
 		twitterPaneOpen: false,
 
+		// Popup visibility states
+		settingsOpen: false,
+
 		// Misc
 		unreadTweets: false
 
@@ -34,6 +37,11 @@ export default {
 			state.twitterPaneOpen = payload;
 			// Also change the unread tweets to false
 			state.unreadTweets = false;
+		},
+		// Popup visibility mutations
+		setSettingsOpen(state, payload) {
+			if (typeof payload !== 'boolean') { payload = !state.settingsOpen; }
+			state.settingsOpen = payload;
 		},
 		// Misc
 		setUnreadTweets(state, payload) {

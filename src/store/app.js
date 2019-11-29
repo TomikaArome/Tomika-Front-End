@@ -20,7 +20,16 @@ export default {
 			if (typeof payload !== 'boolean') { payload = true; }
 			state.backEndUnreachable = payload;
 		},
+		/**
+		 * The structure of the object passed as payload should be as follows:
+		 *  - popupComponent: a template object of the component that should be displayed. This could be the
+		 *      tomika-popup element itself, or a wrapper component
+		 *  - noScreenClose: if set to true, the popup won't close from clicking the screen
+		 *  - bigPopup: if set to true, the popup will be fixed in size and will spread across the entire screen on
+		 *      smaller screens
+		 */
 		pushPopup(state, payload) {
+			if (!payload.popupComponent) { payload.popupComponent = 'div'; }
 			state.popupStack.push(payload);
 		},
 		popPopup(state) {

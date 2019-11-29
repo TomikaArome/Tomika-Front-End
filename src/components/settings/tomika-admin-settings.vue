@@ -32,10 +32,11 @@
 	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 	// Import components
-	import tomikaBlockMessage from './tomika-block-message';
+	import tomikaBlockMessage from '../tomika-block-message';
+	import tomikaPopup from '../tomika-popup';
 
 	// Import requests
-	import { infoReq, startReq, stopReq } from '../requests/discordbot';
+	import { infoReq, startReq, stopReq } from '../../requests/discordbot';
 
 	// Font awesome
 	library.add(faPowerOff, faSpinner);
@@ -91,11 +92,14 @@
 			async toggleBotStatus(confirmOk) {
 				if (!confirmOk && this.$store.state.discord.bot.connected) {
 					this.$store.commit('app/pushPopup', {
-						prompt: 'Are you sure you want to disconnect the bot?',
-						choices: [
-							{ buttonText: 'No', buttonAction: (close) => { close(); } },
-							{ buttonText: 'Yes', buttonAction: (close) => { this.toggleBotStatus(true); close(); } }
-						]
+						popupComponent: {
+							template: `<tomika-popup prompt="Are you sure you want to disconnect the bot?" :choices="choices"></tomika-popup>`,
+							components: { tomikaPopup },
+							data: () => { return { choices: [
+								{ buttonText: 'No', buttonAction: (close) => { close(); } },
+								{ buttonText: 'Yes', buttonAction: (close) => { this.toggleBotStatus(true); close(); } }
+							] } }
+						}
 					});
 					return;
 				}

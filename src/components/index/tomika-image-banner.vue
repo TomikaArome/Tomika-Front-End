@@ -21,7 +21,7 @@
 </template>
 
 <script>
-	import TwLink from "./tw-link";
+	import TwLink from "../wrappers/tw-link";
 	export default {
 		name: 'tomika-image-banner',
 		components: {TwLink},

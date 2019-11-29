@@ -49,10 +49,10 @@
 	import { faBars } from '@fortawesome/free-solid-svg-icons';
 	import { faTwitch, faTwitter } from '@fortawesome/free-brands-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-	import { wait } from '../util';
+	import { wait } from '../../util';
 
 	// Import components
-	import tomikaDiscordPfp from './tomika-discord-pfp';
+	import tomikaDiscordPfp from '../wrappers/tomika-discord-pfp';
 
 	// Font awesome
 	library.add(faBars, faTwitch, faTwitter);
@@ -65,8 +65,8 @@
 		},
 		data() {
 			return {
-				tomikaInkLogoUrl: require('../assets/images/tomika.ink.svg'),
-				discordPfpUrl: require('../assets/images/discordDefaultPfp.png')
+				tomikaInkLogoUrl: require('../../assets/images/tomika.ink.svg'),
+				discordPfpUrl: require('../../assets/images/discordDefaultPfp.png')
 			}
 		},
 		created() {

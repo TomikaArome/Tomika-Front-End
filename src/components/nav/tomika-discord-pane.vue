@@ -11,7 +11,7 @@
 			<tomika-discord-pfp size="64" />
 			<div class="displayName">{{ $store.state.discord.user.username }}</div>
 			<div class="tag">#{{ $store.state.discord.user.discriminator }}</div>
-			<button v-if="$store.state.discord.user.admin" class="settings-button" @click="$parent.openSettings">
+			<button v-if="$store.state.discord.user.admin" class="settings-button" @click="openSettings">
 				<font-awesome-icon icon="cogs"></font-awesome-icon>Settings
 			</button>
 			<button class="connect-button red notFilled" @click="disconnect">
@@ -58,10 +58,10 @@
 	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 	// Import components
-	import tomikaDiscordPfp from './tomika-discord-pfp';
+	import tomikaDiscordPfp from '../wrappers/tomika-discord-pfp';
 
 	// Import requests
-	import { disconnectReq } from '../requests/user';
+	import { disconnectReq } from '../../requests/user';
 
 	// Font awesome
 	library.add(faCheck, faLock, faDiscord, faInfoCircle, faCogs);
@@ -81,6 +81,10 @@
 			},
 			async disconnect() {
 				disconnectReq();
+			},
+			openSettings() {
+				this.$store.commit('nav/setSettingsOpen', true);
+				this.$store.commit('nav/setDiscordPaneOpen', false);
 			}
 		}
 	}

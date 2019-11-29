@@ -45,9 +45,6 @@
 	 *  - noTitle: if set to true, the title bar won't be displayed
 	 *  - closeButtonAction: function that will be triggered by the close button. If omitted, the close button will not
 	 *      be displayed
-	 *  - noScreenClose: if set to true, the popup won't close from clicking the screen (popup stack only)
-	 *  - bigPopup: if set to true, the popup will be fixed in size and will spread across the entire screen on smaller
-	 *      screens (popup stack only)
 	 *  - ONE OF THE FOLLOWING:
 	 *    - contentComponent: the component that will be displayed (no tabs solution)
 	 *    OR
@@ -69,6 +66,7 @@
 	import { library } from '@fortawesome/fontawesome-svg-core';
 	import { faTimes } from '@fortawesome/free-solid-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+	import store from '../store/store';
 
 	// Font awesome
 	library.add(faTimes);
@@ -86,14 +84,14 @@
 			contentComponent: Object,
 			borderless: { type: Boolean, default: false },
 			noTitle: { type: Boolean, default: false },
-			closeButtonAction: Function,
+			closeButtonAction: { type: Function, default() { store.commit('app/popPopup'); } },
 			tabs: Array,
 			prompt: String,
 			choices: Array
 		},
 		computed: {
 			content() {
-				if (this.tabs.length > 0) {
+				if (this.tabs.length > 0 && this.tabs[this.selectedTab]) {
 					return this.tabs[this.selectedTab].contentComponent || this.contentComponent || 'div';
 				}
 				return this.contentComponent || 'div';

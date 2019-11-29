@@ -9,12 +9,14 @@
 			<tomika-twitch-pane v-if="$store.state.nav.twitchPaneOpen"></tomika-twitch-pane>
 		</transition>
 		<component class="tomika-content" :is="contentComponent"></component>
-		<div v-if="$store.state.app.popupStack.length" id="tomika-popup-stack">
+		<div id="tomika-popup-stack">
+			<div v-if="$store.state.nav.settingsOpen" class="popup-screen"
+				@click="clickPopupScreen(() => {$store.commit('nav/setSettingsOpen', false)}, $event)">
+				<tomika-settings class="big-popup"></tomika-settings>
+			</div>
 			<div class="popup-screen" v-for="(popup, popupStackIndex) in $store.state.app.popupStack"
-				:key="popupStackIndex" @click="clickPopupScreen(popup.noScreenClose, $event)">
-				<tomika-popup :title="popup.title" :noTitle="popup.noTitle" :contentComponent="popup.contentComponent"
-					:borderless="popup.borderless" :tabs="popup.tabs" :closeButtonAction="() => { $store.commit('app/popPopup'); }"
-					:prompt="popup.prompt" :choices="popup.choices" :class="{ 'big-popup': popup.bigPopup }"></tomika-popup>
+				:key="popupStackIndex" @click="clickPopupScreen(!popup.noScreenClose, $event)">
+				<component :is="popup.popupComponent" :class="{ 'big-popup': popup.bigPopup }"></component>
 			</div>
 		</div>
 	</div>
@@ -22,18 +24,15 @@
 
 <script>
 	// Import components
-	import tomikaNavBar from './tomika-nav-bar';
-	import tomikaNavDrawer from './tomika-nav-drawer';
-	import tomikaDiscordPane from './tomika-discord-pane';
-	import tomikaTwitchPane from './tomika-twitch-pane';
-	import tomikaContentIndex from './tomika-content-index';
-	import tomikaPopup from './tomika-popup';
-	import tomikaAdminSettings from './tomika-admin-settings';
-	import tomikaGuildSettings from './tomika-guild-settings';
+	import tomikaNavBar from './nav/tomika-nav-bar';
+	import tomikaNavDrawer from './nav/tomika-nav-drawer';
+	import tomikaDiscordPane from './nav/tomika-discord-pane';
+	import tomikaTwitchPane from './nav/tomika-twitch-pane';
+	import tomikaContentIndex from './index/tomika-content-index';
+	import tomikaSettings from './settings/tomika-settings';
 
 	// Import requests
 	import { userInfoReq } from '../requests/user';
-	import { infoReq } from '../requests/discordbot';
 
 	export default {
 		name: 'tomika-app',
@@ -43,7 +42,7 @@
 			tomikaDiscordPane,
 			tomikaTwitchPane,
 			tomikaContentIndex,
-			tomikaPopup
+			tomikaSettings
 		},
 		data() {
 			return {
@@ -99,47 +98,11 @@
 				pane.style.right = right + 'px';
 				pane.querySelector('.chevron').style.right = (chevronCentre - right) + 'px';
 			},
-			clickPopupScreen(noScreenClose, event) {
-				if (!noScreenClose && /popup-screen/.test(event.target.className)) { this.$store.commit('app/popPopup'); }
-			},
-			async openSettings() {
-				// Get bot details
-				await infoReq();
-				const botInfo = this.$store.state.discord.bot;
-				// The user settings tab is always available
-				let settingsTabs = [/*{
-					spacer: true
-				}*/];
-				// Check if admin
-				if (this.$store.state.discord.user.admin) {
-					settingsTabs.push({
-						image: botInfo.avatarUrl,
-						contentComponent: {
-							template: '<tomika-admin-settings></tomika-admin-settings>',
-							components: { tomikaAdminSettings }
-						}
-					});
-					settingsTabs.push({ spacer: true });
+			clickPopupScreen(screenAction, event) {
+				if (screenAction && /popup-screen/.test(event.target.className)) {
+					if (typeof screenAction === "function") { screenAction(); }
+					else { this.$store.commit('app/popPopup'); }
 				}
-				// Cycle through guilds and add a tab for each guild the user is a member of
-				for (let i in botInfo.guilds.filter((guild) => { return guild.memberOf; })) {
-					settingsTabs.push({
-						image: botInfo.guilds[i].iconUrl,
-						contentComponent: {
-							template: '<tomika-guild-settings :guild="guild"></tomika-guild-settings>',
-							components: { tomikaGuildSettings },
-							data() { return { guild: botInfo.guilds[i] }; }
-						}
-					});
-				}
-				// Create popup object
-				let settingsPopup = {
-					title: 'Settings',
-					bigPopup: true,
-					tabs: settingsTabs
-				};
-				this.$store.commit('app/pushPopup', settingsPopup);
-				this.$store.commit('nav/setDiscordPaneOpen', false);
 			}
 		}
 	}
@@ -296,7 +259,7 @@
 		}
 	}
 	@media (max-width: 500px) {
-		#tomika-popup-stack .tomika-popup.big-popup {
+		#tomika-popup-stack *.big-popup {
 			border: none;
 			border-radius: 0;
 			width: 100%;
