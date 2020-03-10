@@ -26,6 +26,7 @@
 	// Import dependencies
 	import Vue from 'vue';
 	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+	import { switchContent } from '../content.js';
 
 	// Import components
 	import tomikaNavBar from './nav/tomika-nav-bar';
@@ -53,8 +54,20 @@
 			tomikaSettings
 		},
 		data() {
-			return {
-				contentComponent: 'tomika-content-index'
+			return {}
+		},
+		computed: {
+			contentComponent() {
+				// Get the component name from the store
+				const compName = this.$store.state.nav.contentComponent;
+				// Check the component specified by the store exists
+				let found = false;
+				for (let i in this.$options.components) {
+					if (found) { break; }
+					if (this.$options.components[i].name === compName) { found = true; }
+				}
+				// Return the component name
+				return found ? compName : { template: `<div>Component "${compName}" not registered</div>` };
 			}
 		},
 		async mounted() {
@@ -94,6 +107,9 @@
 					await userInfoReq();
 				}
 			});
+
+			// Check the pathname
+			switchContent(window.location.pathname, true, false);
 		},
 		methods: {
 			positionPane(buttonId, paneId) {

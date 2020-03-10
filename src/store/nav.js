@@ -2,6 +2,9 @@ export default {
 	namespaced: true,
 	state: {
 
+		// The component that has the currently displayed content
+		contentComponent: 'tomika-content-index',
+
 		// Pane visibility states
 		navDrawerOpen: false,
 		discordPaneOpen: false,
@@ -19,6 +22,13 @@ export default {
 
 	},
 	mutations: {
+		// Content component mutation
+		setContentComponent(state, payload) {
+			if (typeof payload === 'string' && /^tomika-/.test(payload)) {
+				state.contentComponent = payload;
+			}
+		},
+
 		// Pane visibility mutations
 		setNavDrawerOpen(state, payload) {
 			if (typeof payload !== 'boolean') { payload = !state.navDrawerOpen; }

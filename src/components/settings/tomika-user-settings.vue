@@ -111,6 +111,8 @@
 	}
 	.discriminator {
 		color: hsl(0,0%,50%);
+	}
+	.user-name > .discriminator {
 		margin-left: 0.2em;
 	}
 	.user-status {
