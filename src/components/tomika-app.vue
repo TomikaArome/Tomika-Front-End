@@ -26,7 +26,6 @@
 	// Import dependencies
 	import Vue from 'vue';
 	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-	import { switchContent } from '../content.js';
 
 	// Import components
 	import tomikaNavBar from './nav/tomika-nav-bar';
@@ -58,8 +57,9 @@
 		},
 		computed: {
 			contentComponent() {
+				if (!this.$store.state.nav.content) { return 'div'; }
 				// Get the component name from the store
-				const compName = this.$store.state.nav.contentComponent;
+				const compName = this.$store.state.nav.content.component;
 				// Check the component specified by the store exists
 				let found = false;
 				for (let i in this.$options.components) {
@@ -109,7 +109,7 @@
 			});
 
 			// Check the pathname
-			switchContent(window.location.pathname, true, false);
+			this.$store.dispatch('nav/switchContent', { pathname: window.location.pathname, handle404: true, pushState: false });
 		},
 		methods: {
 			positionPane(buttonId, paneId) {
