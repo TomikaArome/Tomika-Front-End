@@ -32,8 +32,11 @@
 	import tomikaNavDrawer from './nav/tomika-nav-drawer';
 	import tomikaDiscordPane from './nav/tomika-discord-pane';
 	import tomikaTwitchPane from './nav/tomika-twitch-pane';
-	import tomikaContentIndex from './index/tomika-content-index';
 	import tomikaSettings from './settings/tomika-settings';
+
+	// Import content components
+	import tomikaContentIndex from './index/tomika-content-index';
+	import tomikaContentDb from './db/tomika-content-db';
 
 	// Import requests
 	import { userInfoReq } from '../requests/user';
@@ -49,8 +52,10 @@
 			tomikaNavDrawer,
 			tomikaDiscordPane,
 			tomikaTwitchPane,
+			tomikaSettings,
+			// Content components
 			tomikaContentIndex,
-			tomikaSettings
+			tomikaContentDb
 		},
 		data() {
 			return {}
@@ -109,7 +114,7 @@
 			});
 
 			// Check the pathname
-			this.$store.dispatch('nav/switchContent', { pathname: window.location.pathname, handle404: true, pushState: false });
+			this.$store.dispatch('nav/switchContent', { pathname: window.location.pathname, handleErrors: true, pushState: false });
 		},
 		methods: {
 			positionPane(buttonId, paneId) {

@@ -16,6 +16,9 @@
  *      content is available for everyone
  */
 
+// Import
+import store from './store';
+
 export default {
 	namespaced: true,
 	state: {
@@ -45,11 +48,12 @@ export default {
 				component: 'tomika-content-index'
 			},
 			{
-				id: 'art',
-				name: 'Art',
-				title: 'Art',
-				pathname: /^\/artwork\/[0-9]+$/,
-				component: 'fake-component'
+				id: 'db',
+				name: 'Database Manager',
+				title: 'Database Manager',
+				pathname: /^\/db(\/[\w-]+)?$/,
+				component: 'tomika-content-db',
+				auth: async () => { return await store.dispatch('discord/isAdmin'); }
 			}
 		]
 
@@ -96,7 +100,7 @@ export default {
 		}
 	},
 	actions: {
-		switchContent({ state, commit }, { pathname, handle404, pushState }) {
+		async switchContent({ state, commit, rootState }, { pathname, handleErrors, pushState }) {
 			if (pushState === undefined) { pushState = true; }
 			if (pathname !== '/') { pathname = pathname.replace(/\/$/, ''); }
 			// Attempt to find the content which corresponds to the pathname specified
@@ -104,8 +108,8 @@ export default {
 				if (typeof e.pathname === 'object' && e.pathname instanceof RegExp) { return e.pathname.test(pathname); }
 				else { return e.pathname === pathname; }
 			});
-			// Check if content was found
-			if (contentData) {
+			// Check if content was found and the user is authorised to view the content
+			if (contentData && (typeof contentData.auth !== 'function' || (await contentData.auth(pathname, rootState)))) {
 				// Change the URL so it matches
 				if (pushState) { window.history.pushState(null, null, pathname); }
 				else { window.history.replaceState(null, null, pathname); }
@@ -114,7 +118,8 @@ export default {
 					contentData.title(pathname, state) : contentData.title;
 				// Set the content component
 				commit('setContent', contentData);
-			} else if (handle404) {
+			} else if (handleErrors) {
+				// TODO -- Create content components for 404 and 403 errors
 				console.log('404');
 			}
 		}
