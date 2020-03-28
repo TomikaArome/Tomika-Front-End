@@ -128,7 +128,6 @@ export default {
 				commit('setContent', contentData);
 			} else if (handleErrors) {
 				// TODO -- Create content components for 404 and 403 errors
-				console.log('404');
 			}
 		}
 	}

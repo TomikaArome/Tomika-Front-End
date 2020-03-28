@@ -100,7 +100,7 @@
 						});
 
 					} catch (err) {
-						console.log('Could not connect')
+						// Nothing to do here
 					}
 				} else {
 					this.socket.disconnect();
