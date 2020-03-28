@@ -5,7 +5,7 @@
 			<img class="title-pfp" src="/images/pfp.png">
 			<div class="title-tomika-ink">
 				<img src="/images/tomika.ink.svg">
-				<div class="caption">Profile picture credit: <tw-link handle="mintymochaart"></tw-link></div>
+				<!--<div class="caption">Profile picture credit: <tw-link handle="mintymochaart"></tw-link></div>-->
 			</div>
 		</div>
 		<tomika-index-section title="Ayo! I'm Tomika!" image="/images/art/Tomika.png" image-on-left
@@ -22,7 +22,8 @@
 		<tomika-index-section title="Competitive Splatoon with Kemistry" background-color="hsl(0,35%,25%)"
 			background-image="/images/banners/i65-side-view.jpg" image="/images/kemistry-logo.png">
 			<p>One of my most treasured things is my competitive Splatoon team, Kemistry. These lovable eejits are more than just teammates to me, they are close friends and have given me more enjoyable times this last year than I've experienced the entire rest of my life!</p>
-			<p>Kemistry's captain is <tw-link handle="SplZarinie">Zari</tw-link>. It is (unofficially) co-captained by <tw-link handle="mintymochaa">Cynthie</tw-link> and I. The other full time members are <tw-link handle="benkiwi2355">Benji</tw-link>, <tw-link handle="mcprincessdiary">Callie</tw-link> and <tw-link handle="Lewieboy124">Lew</tw-link>. Our former members are still treasured just as much, namely <tw-link handle="Jackster1676">Jack</tw-link>, <tw-link handle="SephSquid">Seph</tw-link> and <tw-link handle="MooDeeStreams">MooDee</tw-link>. We also have many friends from within the community who we love chatting and playing with!</p>
+			<p>We are currently on competitive break, waiting for this summer to resume competitive activities. We do still play Splatoon together though more often in a casual setting.</p>
+			<p>Our roster before our we went on hiatus was <tw-link handle="SplZarinie">Zari</tw-link> as captain, as well as <tw-link handle="benkiwi2355">Benji</tw-link>, <tw-link handle="mintymochaa">Cynthie</tw-link>, <tw-link handle="mcprincessdiary">Whisper</tw-link> and <tw-link handle="Lewieboy124">Lew</tw-link> and of course myself. Our former members are still treasured just as much, namely <tw-link handle="Jackster1676">Jack</tw-link>, <tw-link handle="SephSquid">Seph</tw-link> and <tw-link handle="MooDeeStreams">MooDee</tw-link>. We also have many friends from within the community who we love chatting and playing with!</p>
 			<p>We've played many hours together, Splatoon and other games, participated in tourneys and LANs and met up several times.</p>
 			<p>Be sure to join <a href="https://discord.gg/y4vkuMB" target="_blank">our Discord server</a> to join in on the fun!</p>
 			<p class="caption">Pictured: MooDee, Zari, Cynthie and I playing on stage at the Splatoon UK championship 2019 at Insomnia 65. Credit to <tw-link handle="SephSquid"></tw-link> for the picture.</p>
@@ -108,8 +109,8 @@
 					{ fragments: [0], description: 'Kemistry\'s tag, composed of the lowercase kappa κ and the lowercase epsilon ε.' },
 					{ fragments: [2, 3], description: 'Shortened variant of my real first name, Thomas.' },
 					{ fragments: [4, 5], description: 'The japanese for "squid", in roman letters.' },
-					{ fragments: [2, 3, 4], description: 'Tomi (and sometimes Tommy) is my male nickname which I rarely go by these days.' },
-					{ fragments: [3, 4, 5], description: 'Mika is my female nickname. Call me this if you wanna be my friend ;)' },
+					{ fragments: [2, 3, 4], description: 'Tomi (and sometimes Tommy) is my male nickname which most people call me.' },
+					{ fragments: [3, 4, 5], description: 'Mika is my female nickname which I sometimes go by.' },
 					{ fragments: [2, 3, 4, 5], description: 'Japanese female name. Calling me this is acceptable but slightly formal.' },
 					{ fragments: [7], description: 'To add uniqueness, I gave my character a last name. Arome is the japanese for "Tentatek", the brand of sportswear in Splatoon I\'ve been known to like.' }
 				],
@@ -147,6 +148,7 @@
 		height: 200px;
 		border-radius: 100%;
 		filter: grayscale(25%);
+		background-color: hsla(0,0%,90%,0.8);
 	}
 	.title-tomika-ink {
 		transform: translateY(-40%);

@@ -54,6 +54,14 @@ export default {
 				pathname: /^\/db(\/[\w-]+)?$/,
 				component: 'tomika-content-db',
 				auth: async () => { return await store.dispatch('discord/isAdmin'); }
+			},
+			{
+				id: 'stream-control',
+				name: 'Stream controller',
+				title: 'Stream controller',
+				pathname: '/stream-control',
+				component: 'tomika-content-stream-control',
+				auth: async () => { return await store.dispatch('discord/isAdmin'); }
 			}
 		]
 

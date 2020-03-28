@@ -36,6 +36,7 @@
 
 	// Import content components
 	import tomikaContentIndex from './index/tomika-content-index';
+	import tomikaContentStreamControl from './stream-control/tomika-content-stream-control';
 	import tomikaContentDb from './db/tomika-content-db';
 
 	// Import requests
@@ -55,6 +56,7 @@
 			tomikaSettings,
 			// Content components
 			tomikaContentIndex,
+			tomikaContentStreamControl,
 			tomikaContentDb
 		},
 		data() {
