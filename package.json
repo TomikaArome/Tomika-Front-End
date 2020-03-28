@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build && echo 'tomika.ink' > ./dist/CNAME",
+    "build": "vue-cli-service build && echo 'tomika.ink' > ./dist/CNAME && cat ./dist/index.html > ./dist/404.html",
     "lint": "vue-cli-service lint",
 	"deploy": "node ./node_modules/vue-gh-pages/index.js --branch gh-pages"
   },
