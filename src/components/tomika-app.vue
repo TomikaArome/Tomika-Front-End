@@ -213,6 +213,14 @@
 	button:hover:after {
 		opacity: 0.2;
 	}
+	input[type=text], input[type=number], input[type=password] {
+		font-family: inherit;
+		background: hsla(0,0%,100%,0.8);
+		border: 1px solid hsl(0,0%,30%);
+		border-radius: 4px;
+		padding: 4px 8px;
+		outline: none;
+	}
 	hr {
 		border: none;
 		border-bottom: 1px solid hsl(0,0%,50%);

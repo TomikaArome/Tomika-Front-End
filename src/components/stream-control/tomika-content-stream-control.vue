@@ -2,11 +2,17 @@
 	<div id="tomika-content-stream-control">
 		<h1>Connection</h1>
 		<div class="panel-row">
-			<div class="panel panel-button" @click="connect" :class="{ on: obsConnected, pending: obsConnectionPending }">
+			<div class="panel panel-button" @click="connect" :class="{ on: obsConnected, pending: obsConnectionPending, faded: !readyToConnect }">
 				<font-awesome-icon icon="power-off"></font-awesome-icon>
 				Connect
 			</div>
-			<div class="connect-info">
+			<div class="connect-info" :class="{ faded: obsConnected }">
+				<div class="obs-host-div">
+					OBS host:
+					<input type="text" :value="obsHost" @change="obsHost = $event.target.value">
+					OBS password:
+					<input type="password" @change="obsPassword = $event.target.value">
+				</div>
 				<div>Make sure OBS is open, then press on "Connect" to establish a WebSocket connection</div>
 				<div><font-awesome-icon :spin="connectionPending" :icon="connectionPending ? 'spinner' : (socket ? 'check' : 'times')"></font-awesome-icon>WebSocket connection to back-end</div>
 				<div><font-awesome-icon :spin="obsConnectionPending" :icon="obsConnectionPending ? 'spinner' : (obsConnected ? 'check' : 'times')"></font-awesome-icon>WebSocket connection to OBS</div>
@@ -39,6 +45,7 @@
 	import { library } from '@fortawesome/fontawesome-svg-core';
 	import { faPowerOff, faSpinner, faTimes, faCheck, faMugHot, faAdjust } from '@fortawesome/free-solid-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+	import f from '../../requests/fetch';
 
 	// Font awesome
 	library.add(faPowerOff, faSpinner, faTimes, faCheck, faMugHot, faAdjust);
@@ -49,7 +56,10 @@
 		data() {
 			return {
 				socket: null,
+				readyToConnect: false,
 				connectionPending: false,
+				obsHost: '127.0.0.1:4444',
+				obsPassword: '',
 				obsConnectionPending: false,
 				obsConnected: false,
 				brbActive: false,
@@ -74,7 +84,7 @@
 						this.socket.on('connect', () => {
 							this.connectionPending = false;
 							// Connection to the OBS websocket
-							this.socket.emit('connectObs');
+							this.socket.emit('connectObs', { host: this.obsHost, password: this.obsPassword });
 						});
 
 						this.socket.on('dataEvent', (data) => {
@@ -122,6 +132,13 @@
 			onBrbSmallMessageChange(e) {
 				if (this.socket) { this.socket.emit('updateBrb', { smallMessage: e.target.value }); }
 			}
+		},
+		async mounted() {
+			const obsHostRes = await f('/obs/host');
+			if (obsHostRes.success) {
+				this.obsHost = obsHostRes.o.obsHost;
+				this.readyToConnect = true;
+			}
 		}
 	}
 </script>
@@ -155,6 +172,12 @@ h1 {
 }
 .connect-info svg {
 	width: 24px;
+}
+.obs-host-div input {
+	color: inherit;
+	font-family: "Courier New", monospace;
+	background-color: hsla(0,0%,100%,0.1);
+	margin-right: 8px;
 }
 .panel {
 	min-width: 100px;
@@ -193,7 +216,6 @@ h1 {
 }
 .panel input {
 	border: 1px solid hsl(180,100%,10%);
-	border-radius: 4px;
 	background-color: hsla(0,0%,100%,0.2);
 	padding: 6px 8px;
 	font-family: inherit;
