@@ -19,6 +19,17 @@
 			</div>
 		</div>
 		<div :class="{ faded: !obsConnected }">
+			<h1>General</h1>
+			<div class="panel-row">
+				<div class="panel panel-button" :class="{ on: micActive }" @click="onMicToggle">
+					<font-awesome-icon icon="microphone"></font-awesome-icon>
+					Microphone
+				</div>
+				<div class="panel panel-button" :class="{ on: discordActive }" @click="onDiscordToggle">
+					<font-awesome-icon :icon="['fab', 'discord']"></font-awesome-icon>
+					Discord
+				</div>
+			</div>
 			<h1>BRB screen</h1>
 			<div class="panel-row">
 				<div class="panel panel-button" :class="{ on: brbActive }" @click="onBrbToggle">
@@ -33,6 +44,17 @@
 					<font-awesome-icon icon="adjust"></font-awesome-icon>
 					Transparent
 				</div>
+				<div class="panel panel-button" :class="{ on: brbMusic }" @click="onBrbMusicToggle">
+					<font-awesome-icon icon="music"></font-awesome-icon>
+					Music
+				</div>
+			</div>
+			<h1>Start & end of stream</h1>
+			<div class="panel-row">
+				<div class="panel panel-button" :class="{ on: endcardActive }" @click="onEndcardToggle">
+					<font-awesome-icon icon="desktop"></font-awesome-icon>
+					Endcard
+				</div>
 			</div>
 		</div>
 	</div>
@@ -43,12 +65,15 @@
 	import io from 'socket.io-client';
 	import Vue from 'vue';
 	import { library } from '@fortawesome/fontawesome-svg-core';
-	import { faPowerOff, faSpinner, faTimes, faCheck, faMugHot, faAdjust } from '@fortawesome/free-solid-svg-icons';
+	import { faPowerOff, faSpinner, faTimes, faCheck, faMugHot, faAdjust,
+		faMusic, faDesktop, faMicrophone } from '@fortawesome/free-solid-svg-icons';
+	import { faDiscord } from '@fortawesome/free-brands-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 	import f from '../../requests/fetch';
 
 	// Font awesome
-	library.add(faPowerOff, faSpinner, faTimes, faCheck, faMugHot, faAdjust);
+	library.add(faPowerOff, faSpinner, faTimes, faCheck, faMugHot, faAdjust, faMusic, faDesktop, faMicrophone,
+		faDiscord);
 	Vue.component('font-awesome-icon', FontAwesomeIcon);
 
 	export default {
@@ -62,10 +87,14 @@
 				obsPassword: '',
 				obsConnectionPending: false,
 				obsConnected: false,
+				micActive: false,
+				discordActive: false,
 				brbActive: false,
 				brbTransparent: true,
+				brbMusic: true,
 				brbBigMessage: 'Taking a quick break',
-				brbSmallMessage: 'I\'ll be back soon!'
+				brbSmallMessage: 'I\'ll be back soon!',
+				endcardActive: false
 			}
 		},
 		methods: {
@@ -90,23 +119,40 @@
 						this.socket.on('dataEvent', (data) => {
 							this.obsConnectionPending = false;
 							this.obsConnected = true;
-							if (typeof data.brb == 'object') {
+							if (typeof data.micActive === 'boolean') { this.micActive = data.micActive; }
+							if (typeof data.discordActive === 'boolean') { this.discordActive = data.discordActive; }
+							if (typeof data.brb === 'object') {
 								if (typeof data.brb.active === 'boolean') { this.brbActive = data.brb.active; }
-								if (typeof data.brb.transparent === 'boolean') { this.brbActive = data.brb.transparent; }
+								if (typeof data.brb.transparent === 'boolean') { this.brbTransparent = data.brb.transparent; }
+								if (typeof data.brb.music === 'boolean') { this.brbMusic = data.brb.music; }
 								if (typeof data.brb.bigMessage === 'string') { this.brbBigMessage = data.brb.bigMessage; }
 								if (typeof data.brb.smallMessage === 'string') { this.brbSmallMessage = data.brb.smallMessage; }
 							}
+							if (typeof data.endcardActive === 'boolean') { this.endcardActive = data.endcardActive; }
 						});
 
 						this.socket.on('connectObsFailed', () => {
 							this.obsConnectionPending = false;
 						});
 
+						this.socket.on('updateMicActive', (data) => {
+							this.micActive = data.active;
+						});
+
+						this.socket.on('updateDiscordActive', (data) => {
+							this.discordActive = data.active;
+						});
+
 						this.socket.on('updateBrb', (data) => {
 							this.brbActive = data.active;
 							this.brbTransparent = data.transparent;
+							this.brbMusic = data.music;
 							this.brbBigMessage = data.bigMessage;
 							this.brbSmallMessage = data.smallMessage;
+						});
+
+						this.socket.on('updateEndcardActive', (data) => {
+							this.endcardActive = data.active;
 						});
 
 					} catch (err) {
@@ -120,17 +166,29 @@
 					this.obsConnected = false;
 				}
 			},
+			onMicToggle() {
+				if (this.socket) { this.socket.emit('updateMicActive', { active: !this.micActive }); }
+			},
+			onDiscordToggle() {
+				if (this.socket) { this.socket.emit('updateDiscordActive', { active: !this.discordActive }); }
+			},
 			onBrbToggle() {
 				if (this.socket) { this.socket.emit('updateBrb', { active: !this.brbActive }); }
 			},
 			onBrbTransparencyToggle() {
 				if (this.socket) { this.socket.emit('updateBrb', { transparent: !this.brbTransparent }); }
 			},
+			onBrbMusicToggle() {
+				if (this.socket) { this.socket.emit('updateBrb', { music: !this.brbMusic }); }
+			},
 			onBrbBigMessageChange(e) {
 				if (this.socket) { this.socket.emit('updateBrb', { bigMessage: e.target.value }); }
 			},
 			onBrbSmallMessageChange(e) {
 				if (this.socket) { this.socket.emit('updateBrb', { smallMessage: e.target.value }); }
+			},
+			onEndcardToggle() {
+				if (this.socket) { this.socket.emit('updateEndcardActive', { active: !this.endcardActive }); }
 			}
 		},
 		async mounted() {
