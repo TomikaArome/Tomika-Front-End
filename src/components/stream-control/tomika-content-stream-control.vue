@@ -29,6 +29,10 @@
 					<font-awesome-icon :icon="['fab', 'discord']"></font-awesome-icon>
 					Discord
 				</div>
+				<div class="panel panel-button" :class="{ on: socialActive }" @click="onSocialToggle">
+					<font-awesome-icon icon="at"></font-awesome-icon>
+					Social
+				</div>
 			</div>
 			<h1>BRB screen</h1>
 			<div class="panel-row">
@@ -66,14 +70,14 @@
 	import Vue from 'vue';
 	import { library } from '@fortawesome/fontawesome-svg-core';
 	import { faPowerOff, faSpinner, faTimes, faCheck, faMugHot, faAdjust,
-		faMusic, faDesktop, faMicrophone } from '@fortawesome/free-solid-svg-icons';
+		faMusic, faDesktop, faMicrophone, faAt } from '@fortawesome/free-solid-svg-icons';
 	import { faDiscord } from '@fortawesome/free-brands-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 	import f from '../../requests/fetch';
 
 	// Font awesome
 	library.add(faPowerOff, faSpinner, faTimes, faCheck, faMugHot, faAdjust, faMusic, faDesktop, faMicrophone,
-		faDiscord);
+		faDiscord, faAt);
 	Vue.component('font-awesome-icon', FontAwesomeIcon);
 
 	export default {
@@ -94,7 +98,8 @@
 				brbMusic: true,
 				brbBigMessage: 'Taking a quick break',
 				brbSmallMessage: 'I\'ll be back soon!',
-				endcardActive: false
+				endcardActive: false,
+				socialActive: false
 			}
 		},
 		methods: {
@@ -129,6 +134,7 @@
 								if (typeof data.brb.smallMessage === 'string') { this.brbSmallMessage = data.brb.smallMessage; }
 							}
 							if (typeof data.endcardActive === 'boolean') { this.endcardActive = data.endcardActive; }
+							if (typeof data.socialActive === 'boolean') { this.socialActive = data.socialActive; }
 						});
 
 						this.socket.on('connectObsFailed', () => {
@@ -153,6 +159,9 @@
 
 						this.socket.on('updateEndcardActive', (data) => {
 							this.endcardActive = data.active;
+						});
+						this.socket.on('updateSocialActive', (data) => {
+							this.socialActive = data.active;
 						});
 
 					} catch (err) {
@@ -189,6 +198,9 @@
 			},
 			onEndcardToggle() {
 				if (this.socket) { this.socket.emit('updateEndcardActive', { active: !this.endcardActive }); }
+			},
+			onSocialToggle() {
+				if (this.socket) { this.socket.emit('updateSocialActive', { active: !this.socialActive }); }
 			}
 		},
 		async mounted() {
