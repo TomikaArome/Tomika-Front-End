@@ -191,7 +191,7 @@
 		left: 0;
 		width: 100%;
 		height: 100%;
-		border-radius: 8px;
+		border-radius: inherit;
 		background-color: #ffffff;
 		opacity: 0;
 		transition: opacity 150ms;

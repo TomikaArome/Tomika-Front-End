@@ -53,7 +53,7 @@
 	import { faBars } from '@fortawesome/free-solid-svg-icons';
 	import { faTwitch, faTwitter } from '@fortawesome/free-brands-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-	import { wait } from '../../util';
+	//import { wait } from '../../util';
 
 	// Import components
 	import tomikaDiscordPfp from '../wrappers/tomika-discord-pfp';
@@ -81,8 +81,9 @@
 			 * Method which updates the status of the twitch stream
 			 * @param timeUntilNextUpdate Time in milliseconds until the next update is performed
 			 */
-			async updateTwitchStatus(timeUntilNextUpdate) {
-				// Set the headers for the requests
+			async updateTwitchStatus(/*timeUntilNextUpdate*/) {
+				return;
+				/*// Set the headers for the requests
 				const headers = {
 					'Accept': 'application/json',
 					'Client-Id': this.$store.state.twitch.apiClientId
@@ -116,7 +117,7 @@
 					}
 				} else {
 					this.$store.commit('twitch/setActiveStream');
-				}
+				}*/
 			}
 		}
 	};
