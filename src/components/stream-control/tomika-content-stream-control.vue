@@ -28,6 +28,16 @@
 				</div>
 			</div>
 		</section>
+		<section :class="{ faded: connStatus < CONN.OBS_SUCCESSFUL, collapsed: data.sceneCollapsed }">
+			<h1 @click="set('sceneCollapsed', !data.sceneCollapsed)">Scenes</h1>
+			<div>
+				<div class="panel panel-button" v-for="(scene, key) in data.scenes" :class="{ on: scene.name ===
+				data.sceneActive }" @click="set('sceneActive', scene.name)" :key="key">
+					<font-awesome-icon :icon="scene.icon"></font-awesome-icon>
+					{{ scene.name }}
+				</div>
+			</div>
+		</section>
 		<section :class="{ faded: connStatus < CONN.SUCCESSFUL, collapsed: data.generalCollapsed }">
 			<h1 @click="set('generalCollapsed', !data.generalCollapsed)">General</h1>
 			<div>
@@ -103,13 +113,13 @@
 	import Vue from 'vue';
 	import { library } from '@fortawesome/fontawesome-svg-core';
 	import { faPowerOff, faWifi, faSpinner, faTimes, faCheck, faMugHot, faAdjust, faMusic, faDesktop, faMicrophone,
-		faAt, faTh, faEye, faEyeSlash, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
+		faAt, faTh, faEye, faEyeSlash, faTrash, faPlus, faTv, faPalette } from '@fortawesome/free-solid-svg-icons';
 	import { faDiscord } from '@fortawesome/free-brands-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 	// Font awesome
 	library.add(faPowerOff, faWifi, faSpinner, faTimes, faCheck, faMugHot, faAdjust, faMusic, faDesktop, faMicrophone,
-		faDiscord, faAt, faTh, faEye, faEyeSlash, faTrash, faPlus);
+		faDiscord, faAt, faTh, faEye, faEyeSlash, faTrash, faPlus, faTv, faPalette);
 	Vue.component('font-awesome-icon', FontAwesomeIcon);
 
 	export default {
@@ -123,6 +133,10 @@
 					// Connection
 					connectionCollapsed: false,
 					obsHost: '127.0.0.1:4444',
+					// Scene
+					sceneCollapsed: false,
+					scenes: [],
+					sceneActive: '',
 					// General
 					generalCollapsed: false,
 					socialActive: false,

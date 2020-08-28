@@ -37,6 +37,7 @@
 	// Import content components
 	import tomikaContentIndex from './index/tomika-content-index';
 	import tomikaContentStreamControl from './stream-control/tomika-content-stream-control';
+	import tomikaContentAdmin from './admin/tomika-content-admin';
 	import tomikaContentDb from './db/tomika-content-db';
 
 	// Import requests
@@ -57,6 +58,7 @@
 			// Content components
 			tomikaContentIndex,
 			tomikaContentStreamControl,
+			tomikaContentAdmin,
 			tomikaContentDb
 		},
 		data() {
@@ -141,183 +143,226 @@
 </script>
 
 <style>
-	@import url('https://fonts.googleapis.com/css?family=Roboto+Condensed&display=swap');
-	html, body {
-		margin: 0;
-		padding: 0;
-		min-width: 100vw;
-		background-image: url('/images/stripes.png');
-		background-color: hsl(0,0%,12%);
+
+/*--------*
+ | Import |
+ *--------*/
+
+@import url('https://fonts.googleapis.com/css?family=Roboto+Condensed&display=swap');
+
+/*-----------*
+ | Base tags |
+ *-----------*/
+
+html, body {
+	margin: 0;
+	padding: 0;
+	min-width: 100vw;
+	min-height: 100vh;
+	background-image: url('/images/stripes.png');
+	background-color: hsl(0,0%,12%);
+}
+::selection {
+	background-color: hsla(180,100%,50%,0.2);
+}
+a, a:visited {
+	color: hsl(180,50%,50%);
+	text-decoration: none;
+	transition: color 150ms;
+}
+a:hover {
+	color: hsl(180,50%,65%);
+}
+h1, h2, h3, h4, h5, h6 {
+	font-family: Splatoon2, "Roboto Condensed", Arial, sans-serif;
+}
+button {
+	position: relative;
+	color: #ffffff;
+	border: none;
+	border-radius: 8px;
+	background-color: hsl(0,0%,25%);
+	padding: 0.5em 1em;
+	font-family: inherit;
+	cursor: pointer;
+	outline: none;
+}
+button:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+button:not(:disabled):after {
+	content: "";
+	pointer-events: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	border-radius: inherit;
+	background-color: #ffffff;
+	opacity: 0;
+	transition: opacity 150ms;
+}
+button.notFilled {
+	border: 1px solid hsl(0,0%,25%);
+	color: hsl(0,0%,25%);
+	padding: calc(0.5em - 1px) calc(1em - 1px);
+	background: transparent;
+}
+button.notFilled.red {
+	border-color: hsl(0,40%,50%);
+	color: hsl(0,40%,50%);
+}
+button.red {
+	background-color: hsl(0,30%,25%);
+	color: hsl(0,50%,75%);
+}
+button:hover:after {
+	opacity: 0.2;
+}
+input[type=text], input[type=number], input[type=password], textarea {
+	font-family: inherit;
+	font-size: 0.9em;
+	background: hsla(0,0%,100%,0.8);
+	border: 1px solid hsl(0,0%,30%);
+	border-radius: 4px;
+	padding: 4px 8px;
+	outline: none;
+	resize: none;
+}
+hr {
+	border: none;
+	border-bottom: 1px solid hsl(0,0%,50%);
+	margin: 16px 4px;
+}
+* {
+	box-sizing: border-box;
+}
+
+/*------------*
+ | Scrollbars |
+ *------------*/
+
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+::-webkit-scrollbar-track {
+	background: hsla(0,0%,15%,1);
+}
+::-webkit-scrollbar-thumb {
+	background: hsla(0,0%,25%,1);
+	border-radius: 10px;
+	padding: 1px;
+	border: 2px solid hsla(0,0%,15%,1);
+	transition: background 100ms;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: hsla(0,0%,35%,1);
+}
+::-webkit-scrollbar-corner {
+	background: hsla(0,0%,15%,1);
+}
+
+/*-------*
+ | Other |
+ *-------*/
+
+#app {
+	font-family: 'Roboto Condensed', Arial, sans-serif;
+	color: #ffffff;
+	font-size: 14px;
+}
+.spacer {
+	flex-grow: 1;
+}
+.tomika-pane {
+	background-color: hsl(0,0%,10%);
+	position: fixed;
+	z-index: 1000000;
+	top: 48px;
+	right: 0;
+	color: #ffffff;
+	padding: 16px;
+	border-radius: 8px;
+	text-align: center;
+	border: 1px solid hsl(180,25%,30%);
+}
+.tomika-pane > .chevron {
+	fill: hsl(0,0%,10%);
+	width: 6px;
+	position: absolute;
+	top: -6px;
+	right: 50%;
+	overflow: visible;
+	stroke: hsl(180,25%,30%);
+	stroke-width: 0.5;
+}
+.slide-fade-enter-active, .slide-fade-leave-active {
+	transition: transform 150ms ease, opacity 150ms ease;
+}
+.slide-fade-enter, .slide-fade-leave-to {
+	transform: translateY(4px);
+	opacity: 0;
+}
+.tomika-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	position: absolute;
+	top: 40px;
+	width: 100%;
+	min-height: calc(100% - 40px);
+}
+.tomika-column {
+	width: 100%;
+	max-width: 960px;
+	padding: 20px;
+}
+#tomika-popup-stack {
+	position: fixed;
+	z-index: 999999;
+	top: 40px;
+	left: 0;
+	width: 100%;
+	height: calc(100% - 40px);
+}
+#tomika-popup-stack .popup-screen {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+#tomika-popup-stack .popup-screen:last-child {
+	background-color: hsla(0,0%,0%,0.7);
+}
+@media (min-width: 501px) {
+	.tomika-popup {
+		max-width: 80%;
+		max-height: 80%;
 	}
-	#app {
-		font-family: 'Roboto Condensed', Arial, sans-serif;
-		color: #ffffff;
-		font-size: 14px;
-	}
-	::selection {
-		background-color: hsla(180,100%,50%,0.2);
-	}
-	a, a:visited {
-		color: hsl(180,50%,50%);
-		text-decoration: none;
-		transition: color 150ms;
-	}
-	a:hover {
-		color: hsl(180,50%,65%);
-	}
-	h1, h2, h3, h4, h5, h6 {
-		font-family: Splatoon2, "Roboto Condensed", Arial, sans-serif;
-	}
-	button {
-		position: relative;
-		color: #ffffff;
+}
+@media (max-width: 500px) {
+	#tomika-popup-stack *.big-popup {
 		border: none;
-		border-radius: 8px;
-		background-color: hsl(0,0%,25%);
-		padding: 0.5em 1em;
-		font-family: inherit;
-		cursor: pointer;
-		outline: none;
-	}
-	button:disabled {
-		opacity: 0.5;
-		cursor: default;
-	}
-	button:not(:disabled):after {
-		content: "";
-		pointer-events: none;
-		position: absolute;
-		top: 0;
-		left: 0;
+		border-radius: 0;
 		width: 100%;
 		height: 100%;
-		border-radius: inherit;
-		background-color: #ffffff;
-		opacity: 0;
-		transition: opacity 150ms;
 	}
-	button.notFilled {
-		border: 1px solid hsl(0,0%,25%);
-		color: hsl(0,0%,25%);
-		padding: calc(0.5em - 1px) calc(1em - 1px);
-		background: transparent;
-	}
-	button.notFilled.red {
-		border-color: hsl(0,40%,50%);
-		color: hsl(0,40%,50%);
-	}
-	button.red {
-		background-color: hsl(0,30%,25%);
-		color: hsl(0,50%,75%);
-	}
-	button:hover:after {
-		opacity: 0.2;
-	}
-	input[type=text], input[type=number], input[type=password] {
-		font-family: inherit;
-		background: hsla(0,0%,100%,0.8);
-		border: 1px solid hsl(0,0%,30%);
-		border-radius: 4px;
-		padding: 4px 8px;
-		outline: none;
-	}
-	hr {
-		border: none;
-		border-bottom: 1px solid hsl(0,0%,50%);
-		margin: 16px 4px;
-	}
-	* {
-		box-sizing: border-box;
-	}
-	.spacer {
-		flex-grow: 1;
-	}
-	.tomika-pane {
-		background-color: hsl(0,0%,10%);
-		position: fixed;
-		z-index: 1000000;
-		top: 48px;
-		right: 0;
-		color: #ffffff;
-		padding: 16px;
-		border-radius: 8px;
-		text-align: center;
-		border: 1px solid hsl(180,25%,30%);
-	}
-	.tomika-pane > .chevron {
-		fill: hsl(0,0%,10%);
-		width: 6px;
-		position: absolute;
-		top: -6px;
-		right: 50%;
-		overflow: visible;
-		stroke: hsl(180,25%,30%);
-		stroke-width: 0.5;
-	}
-	.slide-fade-enter-active, .slide-fade-leave-active {
-		transition: transform 150ms ease, opacity 150ms ease;
-	}
-	.slide-fade-enter, .slide-fade-leave-to {
-		transform: translateY(4px);
-		opacity: 0;
-	}
-	.tomika-content {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		position: absolute;
-		top: 40px;
-		width: 100%;
-		min-height: calc(100% - 40px);
-	}
-	.tomika-column {
-		width: 100%;
-		max-width: 960px;
-		padding: 20px;
-	}
-	#tomika-popup-stack {
-		position: fixed;
-		z-index: 999999;
-		top: 40px;
-		left: 0;
-		width: 100%;
-		height: calc(100% - 40px);
-	}
-	#tomika-popup-stack .popup-screen {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-	#tomika-popup-stack .popup-screen:last-child {
-		background-color: hsla(0,0%,0%,0.7);
-	}
-	@media (min-width: 501px) {
-		.tomika-popup {
-			max-width: 80%;
-			max-height: 80%;
-		}
-	}
-	@media (max-width: 500px) {
-		#tomika-popup-stack *.big-popup {
-			border: none;
-			border-radius: 0;
-			width: 100%;
-			height: 100%;
-		}
-	}
+}
+.big-popup {
+	width: 60%;
+	height: 70%;
+}
+@media (max-width: 700px) {
 	.big-popup {
-		width: 60%;
-		height: 70%;
+		width: 80%;
+		height: 80%;
 	}
-	@media (max-width: 700px) {
-		.big-popup {
-			width: 80%;
-			height: 80%;
-		}
-	}
+}
 </style>

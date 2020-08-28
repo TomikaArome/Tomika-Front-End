@@ -53,7 +53,14 @@ export default {
 				title: 'Database Manager',
 				pathname: /^\/db(\/[\w-]+)?$/,
 				component: 'tomika-content-db',
-				auth: async () => { return await store.dispatch('discord/isAdmin'); }
+				auth: async () => { return true; /*await store.dispatch('discord/isAdmin');*/ }
+			},
+			{
+				id: 'admin',
+				name: 'Admin tools',
+				title: 'Admin tools',
+				pathname: /^\/admin(\/[\w-]+)?$/,
+				component: 'tomika-content-admin'
 			},
 			{
 				id: 'stream-control',
