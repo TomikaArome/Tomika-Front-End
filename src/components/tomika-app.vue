@@ -181,7 +181,7 @@ button {
 	color: #ffffff;
 	border: none;
 	border-radius: 8px;
-	background-color: hsl(0,0%,25%);
+	background-color: hsl(0,0%,15%);
 	padding: 0.5em 1em;
 	font-family: inherit;
 	cursor: pointer;
@@ -206,20 +206,24 @@ button:not(:disabled):after {
 }
 button.notFilled {
 	border: 1px solid hsl(0,0%,25%);
-	color: hsl(0,0%,25%);
+	color: hsl(0,0%,50%);
 	padding: calc(0.5em - 1px) calc(1em - 1px);
-	background: transparent;
+	background: transparent !important;
 }
 button.notFilled.red {
-	border-color: hsl(0,40%,50%);
-	color: hsl(0,40%,50%);
+	border-color: hsl(0,40%,25%);
+	color: hsl(0,40%,40%);
 }
 button.red {
-	background-color: hsl(0,30%,25%);
+	background-color: hsl(0,20%,25%);
 	color: hsl(0,50%,75%);
 }
+button.green {
+	background-color: hsl(90,20%,25%);
+	color: hsl(90,50%,75%);
+}
 button:hover:after {
-	opacity: 0.2;
+	opacity: 0.05;
 }
 input[type=text], input[type=number], input[type=password], textarea {
 	font-family: inherit;

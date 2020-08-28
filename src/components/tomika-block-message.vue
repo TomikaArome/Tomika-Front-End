@@ -71,12 +71,12 @@
 	}
 	.warning {
 		color: hsl(40,25%,75%);
-		border: 1px dashed hsl(40,25%,75%);
-		background-color: hsl(40,20%,20%);
+		border: 1px dashed hsla(40,25%,75%,0.5);
+		background-color: hsla(40,20%,20%,0.5);
 	}
 	.error {
 		color: hsl(0,25%,75%);
-		border: 1px dashed hsl(0,25%,75%);
-		background-color: hsl(0,20%,20%);
+		border: 1px dashed hsla(0,25%,75%,0.5);
+		background-color: hsla(0,20%,20%,0.5);
 	}
 </style>
