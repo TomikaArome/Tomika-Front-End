@@ -365,7 +365,7 @@ td, th {
 	max-width: 100%;
 	width: 100%;
 }
-.new-record-row > th:hover {
+.new-record-row > th:hover, .new-record-row.selected > th {
 	background-color: hsla(0,0%,20%,1);
 }
 .new-record-row svg {
