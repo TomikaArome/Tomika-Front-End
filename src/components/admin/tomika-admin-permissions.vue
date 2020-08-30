@@ -1,11 +1,10 @@
 <template>
-	<tomika-collection-table id-prop-name="permString" :data="tableData" :columns="tableColumns"
-	:on-change="onChange" :on-delete="onDelete"></tomika-collection-table>
+	<tomika-collection-table id-prop-name="permString" :columns="tableColumns" data-uri="/db/permission/list"
+		add-uri="/db/permission/add" update-uri="/db/permission/update" delete-uri="/db/permission/delete"></tomika-collection-table>
 </template>
 
 <script>
 	import tomikaCollectionTable from '../wrappers/tomika-collection-table';
-	import { wait } from '../../util';
 
 	export default {
 		name: "tomika-admin-permissions",
@@ -14,27 +13,10 @@
 		},
 		data() {
 			return {
-				async onChange() {
-					await wait(1000);
-					return {
-						description: 'You will always see this description no matter what you put in the input box!!!'
-					};
-				},
-				async onDelete() {
-					await wait(1000);
-					return true;
-				},
-				tableData: [
-					{ permString: 'perm', description: 'Root of all permissions', isSomething: true },
-					{ permString: 'perm.content', description: 'Manage content on the site', isSomething: true },
-					{ permString: 'perm.content.about', description: 'Manage content in the about page of the site', isSomething: false },
-					{ permString: 'perm.content.about.art', description: 'Manage content in the art section of the about page of the site', isSomething: true },
-					{ permString: 'perm.content.about.programming', description: 'Manage content in the programming section of the about page of the site', isSomething: false }
-				],
 				tableColumns: [
 					{
 						propName: 'permString',
-						colTitle: 'Permission',
+						colTitle: 'Permission string',
 						editable: true,
 						style: { fontFamily: '"Courier New", monospace', maxWidth: '300px', wordWrap: 'break-word' },
 						validator: ({ newValue }) => {
@@ -42,8 +24,12 @@
 							else { return true; }
 						}
 					},
-					{ propName: 'description', colTitle: 'Description', editable: true, textarea: true },
-					{ propName: 'isSomething', colTitle: 'Something', editable: true, isBoolean: true }
+					{
+						propName: 'description',
+						colTitle: 'Description',
+						editable: true,
+						textarea: true
+					}
 				]
 			}
 		}

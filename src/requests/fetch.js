@@ -43,18 +43,21 @@ const f = async (path, options) => {
 	if (!options) { options = {}; }
 	if (!options.credentials) { options.credentials = 'include'; }
 	options.method = options.method ? options.method.toUpperCase() : 'GET';
+	if (options.body) {
+		if (!options.headers) { options.headers = {}; }
+		options.headers['Content-Type'] = 'application/json';
+		if (typeof options.body === 'object') { options.body = JSON.stringify(options.body); }
+	}
 	store.commit('request/setProgress', { path, progress: true });
 	try {
 		obj.r = await fetch(backEnd + path, options);
 		store.commit('app/setBackEndUnreachable', false);
 		if (obj.r.ok) {
-			if (options.method === 'GET') {
-				try {
-					obj.o = await obj.r.json();
-				} catch (err) {
-					obj.success = false;
-					obj.err = err;
-				}
+			try {
+				obj.o = await obj.r.json();
+			} catch (err) {
+				obj.success = false;
+				obj.err = err;
 			}
 		} else {
 			obj.success = false;

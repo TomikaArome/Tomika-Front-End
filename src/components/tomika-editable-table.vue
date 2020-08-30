@@ -3,11 +3,11 @@
 		<div class="table-area">
 			<table>
 				<tr class="header-row">
-					<th v-for="(col, key) in columns" :key="key">{{ col.colTitle }}</th>
+					<th v-for="(col, key) in visibleInTableColumns" :key="key">{{ col.colTitle }}</th>
 				</tr>
 				<tr v-for="(o, key1) in data" :key="key1" :class="{ selected: o[idPropName] === selectedRowId }"
 					@click="openEditZone(o[idPropName])">
-					<td v-for="(col, key2) in columns" :key="key2" :style="{ ...col.style, textAlign: col.isBoolean ? 'center' : 'left' }">
+					<td v-for="(col, key2) in visibleInTableColumns" :key="key2" :style="{ ...col.style, textAlign: col.isBoolean ? 'center' : 'left' }">
 						<template v-if="!col.isBoolean">{{ o[col.propName] }}</template>
 						<font-awesome-icon v-else-if="o[col.propName]" icon="check" style="color: hsl(90,30%,50%)"></font-awesome-icon>
 						<font-awesome-icon v-else icon="times" style="color: hsl(0,30%,50%)"></font-awesome-icon>
@@ -15,19 +15,19 @@
 				</tr>
 				<tr v-if="!noChange && !noAdd" class="new-record-row" :class="{ selected: selectedRowEditing !== null && selectedRowId === null }"
 					@click="openEditZone()">
-					<td colspan="1000"><font-awesome-icon icon="plus"></font-awesome-icon> Add new</td>
+					<th colspan="1000"><font-awesome-icon icon="plus"></font-awesome-icon> Add new</th>
 				</tr>
 			</table>
 		</div>
 		<div class="edit-zone" v-if="selectedRowEditing !== null">
 			<div class="edit-zone-prop-list">
-				<div v-for="(col, key) in columns" :key="key" class="edit-zone-prop">
+				<div v-for="(col, key) in visibleInEditZoneColumns" :key="key" class="edit-zone-prop">
 					<div class="edit-zone-prop-name">{{ col.colTitle }}</div>
 					<div class="edit-zone-value">
 						<input type="checkbox" v-if="col.isBoolean" v-model="selectedRowEditing[col.propName]">
 						<input type="text" v-else-if="col.editable && !col.textarea" v-model="selectedRowEditing[col.propName]">
 						<textarea type="text" v-else-if="col.editable && col.textarea" v-model="selectedRowEditing[col.propName]"></textarea>
-						<span v-else>{{ selectedRowEditing[col.propName] }}</span>
+						<span :style="col.style" v-else>{{ selectedRowEditing[col.propName] }}</span>
 					</div>
 				</div>
 			</div>
@@ -60,6 +60,10 @@
 	 *    - colTitle: The title at the top of the column
 	 *    - style: (Optional) Object of styles properties for the cells of the column (optional)
 	 *    - editable: (Optional) Boolean that determines whether or not the property is editable. Defaults to false
+	 *    - hiddenInTable: (Optional) Boolean that determines whether or not the property is hidden in the table.
+	 *    Defaults to false
+	 *    - hiddenInEditZone: (Optional) Boolean that determines whether or not the property is hidden in the edit
+	 *    zone. Defaults to false
 	 *    - textarea: (Optional) Boolean that determines whether or not the input field will be a textarea. Defaults to
 	 *    false
 	 *    - isBoolean: (Optional) Boolean that determines whether or not the value is a boolean. Defaults to false
@@ -156,6 +160,12 @@
 			}
 		},
 		computed: {
+			visibleInTableColumns() {
+				return this.columns.filter((col) => { return !col.hiddenInTable; });
+			},
+			visibleInEditZoneColumns() {
+				return this.columns.filter((col) => { return !col.hiddenInEditZone; });
+			},
 			selectedRow() {
 				return this.selectedRowId === null ? null : this.data.find((o) => { return o[this.idPropName] === this.selectedRowId; });
 			},
@@ -303,6 +313,7 @@
 	width: 100%;
 	display: flex;
 	flex-direction: column;
+	background-color: hsl(0,0%,12%);
 }
 .table-area {
 	flex-grow: 1;
@@ -336,9 +347,26 @@ td, th {
 .header-row {
 	user-select: none;
 }
+.header-row > th {
+	position: sticky;
+	top: 0;
+	background-color: hsla(0,0%,5%,1);
+}
 .new-record-row {
 	user-select: none;
 	font-style: italic;
+	text-align: left;
+}
+.new-record-row > th {
+	background-color: hsla(0,0%,10%,1);
+	position: sticky;
+	bottom: 0;
+	left: 0;
+	max-width: 100%;
+	width: 100%;
+}
+.new-record-row > th:hover {
+	background-color: hsla(0,0%,20%,1);
 }
 .new-record-row svg {
 	margin-right: 4px;
@@ -374,6 +402,10 @@ td, th {
 .edit-zone-value {
 	padding: 8px;
 	flex-grow: 1;
+}
+.edit-zone-value span {
+	display: inline-block;
+	padding: 4px;
 }
 input[type=text], textarea {
 	background: hsla(0,0%,5%,1);
