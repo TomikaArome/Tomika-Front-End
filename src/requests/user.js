@@ -11,9 +11,9 @@ import store from '../store/store';
  *-----*/
 
 const userInfoReq = async () => {
-	const userInfo = await f('/user/@me');
+	const userInfo = await f('/db/user/@me');
 	if (userInfo.success) {
-		store.commit('discord/setUser', await userInfo.o);
+		store.commit('user/setUser', userInfo.o.result);
 	}
 };
 

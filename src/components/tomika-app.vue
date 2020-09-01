@@ -32,7 +32,6 @@
 	import tomikaNavDrawer from './nav/tomika-nav-drawer';
 	import tomikaDiscordPane from './nav/tomika-discord-pane';
 	import tomikaTwitchPane from './nav/tomika-twitch-pane';
-	import tomikaSettings from './settings/tomika-settings';
 
 	// Import content components
 	import tomikaContentIndex from './index/tomika-content-index';
@@ -42,7 +41,6 @@
 
 	// Import requests
 	import { userInfoReq } from '../requests/user';
-	import { infoReq as botInfoReq } from '../requests/discordbot';
 
 	// Font awesome
 	Vue.component('font-awesome-icon', FontAwesomeIcon);
@@ -54,7 +52,6 @@
 			tomikaNavDrawer,
 			tomikaDiscordPane,
 			tomikaTwitchPane,
-			tomikaSettings,
 			// Content components
 			tomikaContentIndex,
 			tomikaContentStreamControl,
@@ -80,35 +77,8 @@
 			}
 		},
 		async mounted() {
-			/**
-			 * Function which checks if a mouse click was outside the specified ignore elements
-			 * @param ignoreArr Array of IDs that when the associated element is pressed, the pane will not be closed
-			 * @param action Function which will trigger if none of the elements specified in the array were clicked on
-			 */
-			const clickOutPaneCheck = (ignoreArr, action) => {
-				window.addEventListener('click', (e) => {
-					let target = e.target;
-					while (typeof target === 'object' && target !== null && target.tagName !== 'HTML') {
-						if (ignoreArr.indexOf(target.id) !== -1) { return; }
-						target = target.parentNode;
-					}
-					action();
-				});
-			};
-			// Set it so that when different panes are clicked out of, they close
-			clickOutPaneCheck(['tomika-nav-drawer', 'tomika-nav-bar-nav-button'], () => {
-				this.$store.commit('nav/setNavDrawerOpen', false);
-			});
-			clickOutPaneCheck(['tomika-discord-pane', 'tomika-nav-bar-discord-button'], () => {
-				this.$store.commit('nav/setDiscordPaneOpen', false);
-			});
-			clickOutPaneCheck(['tomika-twitch-pane', 'tomika-nav-bar-twitch-button'], () => {
-				this.$store.commit('nav/setTwitchPaneOpen', false);
-			});
-
 			// Attempt to get user and bot's information from Discord
 			userInfoReq();
-			botInfoReq();
 
 			// Create an event listener to be used to detect when a user has gone through Discord authorisation
 			window.addEventListener('message', async (event) => {

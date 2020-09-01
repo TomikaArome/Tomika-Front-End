@@ -33,9 +33,9 @@
 				<div class="displayName">Server unreachable</div>
 				<div class="tag">Please try again later</div>
 			</div>
-			<div v-else-if="$store.getters['discord/connected']">
-				<div class="displayName">{{ $store.state.discord.user.username }}</div>
-				<div class="tag">#{{ $store.state.discord.user.discriminator }}</div>
+			<div v-else-if="$store.getters['user/connected']">
+				<div class="displayName">{{ $store.getters['user/name'] }}</div>
+				<div class="tag">#{{ $store.getters['user/discriminator'] }}</div>
 			</div>
 			<div v-else>
 				<div class="displayName">Not connected</div>
@@ -75,6 +75,33 @@
 		},
 		created() {
 			this.updateTwitchStatus(this.$store.state.twitch.updateFrequency);
+		},
+		mounted() {
+			/**
+			 * Function which checks if a mouse click was outside the specified ignore elements
+			 * @param ignoreArr Array of IDs that when the associated element is pressed, the pane will not be closed
+			 * @param action Function which will trigger if none of the elements specified in the array were clicked on
+			 */
+			const clickOutPaneCheck = (ignoreArr, action) => {
+				window.addEventListener('click', (e) => {
+					let target = e.target;
+					while (typeof target === 'object' && target !== null && target.tagName !== 'HTML') {
+						if (ignoreArr.indexOf(target.id) !== -1) { return; }
+						target = target.parentNode;
+					}
+					action();
+				});
+			};
+			// Set it so that when different panes are clicked out of, they close
+			clickOutPaneCheck(['tomika-nav-drawer', 'tomika-nav-bar-nav-button'], () => {
+				this.$store.commit('nav/setNavDrawerOpen', false);
+			});
+			clickOutPaneCheck(['tomika-discord-pane', 'tomika-nav-bar-discord-button'], () => {
+				this.$store.commit('nav/setDiscordPaneOpen', false);
+			});
+			clickOutPaneCheck(['tomika-twitch-pane', 'tomika-nav-bar-twitch-button'], () => {
+				this.$store.commit('nav/setTwitchPaneOpen', false);
+			});
 		},
 		methods: {
 			/**

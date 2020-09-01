@@ -10,13 +10,13 @@
 			<p>Try refreshing the page later, or contact <a target="_blank" href="http://twitter.com/TomikaArome">@TomikaArome</a> on Twitter or Tomika#4051 on Discord.</p>
 			<p style="font-weight: bold; color: hsl(0,25%,50%);">Please note that access to the server may be temperamental, as the site is still in development and there is not yet a huge need for the server to be working 24/7.</p>
 		</template>
-		<template v-else-if="$store.getters['discord/connected']">
+		<template v-else-if="$store.getters['user/connected']">
 			<tomika-discord-pfp size="64" />
-			<div class="displayName">{{ $store.state.discord.user.username }}</div>
-			<div class="tag">#{{ $store.state.discord.user.discriminator }}</div>
-			<button v-if="$store.state.discord.user.admin" class="settings-button" @click="openSettings">
+			<div class="displayName">{{ $store.getters['user/name'] }}</div>
+			<div class="tag">#{{ $store.getters['user/discriminator'] }}</div>
+			<!--<button v-if="$store.state.discord.user.admin" class="settings-button" @click="openSettings">
 				<font-awesome-icon icon="cogs"></font-awesome-icon>Settings
-			</button>
+			</button>-->
 		</template>
 		<template v-else>
 			<template>

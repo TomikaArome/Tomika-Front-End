@@ -1,5 +1,5 @@
 // This needs changing later when I have a better understanding of how to import configs
-// This bit of code has also been moved to ../requests/requests.js instead, is will no longer be needed here once the
+// This bit of code has also been moved to ../requests/requests.js instead, it will no longer be needed here once the
 // centralisation for requests has been finished
 const config = {
 	'back-end-url': process.env.NODE_ENV === 'development' ? 'http://localhost' : 'https://ec2.tomika.ink'
