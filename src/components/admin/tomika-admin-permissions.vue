@@ -1,6 +1,6 @@
 <template>
-	<tomika-collection-table id-prop-name="permString" :columns="tableColumns" data-uri="/db/permission/list"
-		add-uri="/db/permission/add" update-uri="/db/permission/update" delete-uri="/db/permission/delete"></tomika-collection-table>
+	<tomika-collection-table id-prop-name="permString" :columns="tableColumns" data-uri="/permission/list"
+		add-uri="/permission/add" update-uri="/permission/update" delete-uri="/permission/delete"></tomika-collection-table>
 </template>
 
 <script>

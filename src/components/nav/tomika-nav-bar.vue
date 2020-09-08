@@ -41,7 +41,7 @@
 				<div class="displayName">Not connected</div>
 				<div class="tag">Connect here!</div>
 			</div>
-			<tomika-discord-pfp />
+			<tomika-discord-pfp :discord-id="$store.getters['user/discordId']" :avatar="$store.getters['user/avatar']" />
 		</div>
 	</div>
 </template>
@@ -69,8 +69,7 @@
 		},
 		data() {
 			return {
-				tomikaInkLogoUrl: require('../../assets/images/tomika.ink.svg'),
-				discordPfpUrl: require('../../assets/images/discordDefaultPfp.png')
+				tomikaInkLogoUrl: require('../../assets/images/tomika.ink.svg')
 			}
 		},
 		created() {

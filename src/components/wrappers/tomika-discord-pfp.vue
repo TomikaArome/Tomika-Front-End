@@ -1,48 +1,50 @@
 <template>
-	<div :style="{ width: this.pfpSize + 'px', height: this.pfpSize + 'px' }">
-		<img :src="pfpUrl">
-		<img class="animatedDiscordPfp" :src="pfpUrlAnimated" v-if="avatarAnimated">
+	<div class="discord-pfp" :style="{ width: size + 'px', height: size + 'px' }">
+		<img :src="url" />
+		<img :src="animatedUrl" class="animatedDiscordPfp" v-if="animated" />
 	</div>
 </template>
 
 <script>
 	export default {
 		name: "tomika-discord-pfp",
-		props: ['size'],
+		props: {
+			size: {
+				validator(val) { return /^[0-9]+/.test(val); },
+				default: 32
+			},
+			discordId: {
+				type: String,
+				default: ''
+			},
+			avatar: {
+				type: String,
+				default: '0'
+			}
+		},
 		computed: {
-			pfpSize() {
-				return /^[0-9]+$/.test(this.$props.size) ? this.$props.size : 32;
-			},
-			userId() {
-				return this.$store.getters['discord/connected'] ? this.$store.state.discord.user.id : null;
-			},
-			avatar() {
-				return this.$store.getters['discord/connected'] ? this.$store.state.discord.user.avatar : null;
-			},
-			avatarAnimated() {
+			animated() {
 				return this.avatar === null ? false : (/^a_/.test(this.avatar));
 			},
-			pfpUrl() {
-				return this.$store.getters['user/pfpUrl'];
-				/*if (this.$store.getters['user/connected']) {
-					return `https://cdn.discordapp.com/avatars/${this.userId}/${this.avatar}.png`;
+			url() {
+				if (this.discordId === '') {
+					return `https://cdn.discordapp.com/embed/avatars/${this.avatar}.png`;
+				} else {
+					return `https://cdn.discordapp.com/avatars/${this.discordId}/${this.avatar}.png`;
 				}
-				return require('../../assets/images/discordDefaultPfp.png');*/
 			},
-			pfpUrlAnimated() {
-				return this.pfpUrl();
-				/*if (this.$store.getters['discord/connected']) {
-					const ext = this.avatarAnimated ? 'gif' : 'png';
-					return `https://cdn.discordapp.com/avatars/${this.userId}/${this.avatar}.${ext}`;
+			animatedUrl() {
+				if (this.animated) {
+					return this.url.replace(/png$/, 'gif');
 				}
-				return require('../../assets/images/discordDefaultPfp.png');*/
+				return this.url;
 			}
 		}
 	}
 </script>
 
 <style scoped>
-	div {
+	.discord-pfp {
 		border-radius: 100%;
 		overflow: hidden;
 		position: relative;
@@ -51,13 +53,13 @@
 		width: 100%;
 		height: 100%;
 		position: absolute;
-		top: 0px;
-		left: 0px;
+		top: 0;
+		left: 0;
 	}
-	.animatedDiscordPfpOnHover .animatedDiscordPfp {
+	.animatedDiscordPfp {
 		opacity: 0;
 	}
-	.animatedDiscordPfpOnHover:hover .animatedDiscordPfp {
+	.discord-pfp:hover .animatedDiscordPfp {
 		opacity: 1;
 	}
 </style>

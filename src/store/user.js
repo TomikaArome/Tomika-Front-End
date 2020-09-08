@@ -11,6 +11,10 @@ export default {
 			return state.o === null || typeof state.o.info !== 'object' || typeof state.o.info._id !== 'string' ? '' :
 				state.o.info._id;
 		},
+		discordId: (state) => {
+			return state.o === null || typeof state.o.info !== 'object' || typeof state.o.info.discordId !== 'string' ? '' :
+				state.o.info.discordId;
+		},
 		name: (state) => {
 			return state.o === null || typeof state.o.info !== 'object' || typeof state.o.info.name !== 'string' ?
 				'Guest' : state.o.info.name;
@@ -19,10 +23,9 @@ export default {
 			return state.o === null || typeof state.o.info !== 'object' || typeof state.o.info.discriminator !==
 				'string' ? '0000' : state.o.info.discriminator;
 		},
-		pfpUrl: (state, getters) => {
-			let n = getters.discriminator % 5;
-			return state.o === null || typeof state.o.info !== 'object' || typeof state.o.info.pfpUrl !== 'string' ?
-				`https://cdn.discordapp.com/embed/avatars/${n}.png` : state.o.info.pfpUrl;
+		avatar: (state, getters) => {
+			return state.o === null || typeof state.o.info !== 'object' || typeof state.o.info.avatar !== 'string' ?
+				String(getters.discriminator % 5) : state.o.info.avatar;
 		}
 	},
 	mutations: {

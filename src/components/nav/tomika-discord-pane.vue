@@ -11,7 +11,7 @@
 			<p style="font-weight: bold; color: hsl(0,25%,50%);">Please note that access to the server may be temperamental, as the site is still in development and there is not yet a huge need for the server to be working 24/7.</p>
 		</template>
 		<template v-else-if="$store.getters['user/connected']">
-			<tomika-discord-pfp size="64" />
+			<tomika-discord-pfp size="64" :discord-id="$store.getters['user/discordId']" :avatar="$store.getters['user/avatar']" />
 			<div class="displayName">{{ $store.getters['user/name'] }}</div>
 			<div class="tag">#{{ $store.getters['user/discriminator'] }}</div>
 			<!--<button v-if="$store.state.discord.user.admin" class="settings-button" @click="openSettings">
@@ -74,7 +74,7 @@
 		},
 		methods: {
 			clickConnectButton() {
-				window.open(`${this.$store.state.app.backEnd}/discord/connect`);
+				window.open(`${this.$store.state.app.backEnd}/user/connect`);
 			},
 			openSettings() {
 				this.$store.commit('nav/setSettingsOpen', !this.$store.state.nav.settingsOpen);
