@@ -36,8 +36,8 @@
 		methods: {
 			async fetchData() {
 				let r = await f(this.dataUri);
-				if (r.success && r.o.ok) {
-					this.data = r.o.result.documents;
+				if (r.ok) {
+					this.data = r.result.documents;
 				}
 			},
 			async onChange(newObj, oldObj) {
@@ -52,10 +52,10 @@
 					res = await f(this.updateUri, { method: 'POST', body: newObj });
 				}
 				if (res.success) {
-					if (res.o.ok) {
-						r = res.o.result;
+					if (res.ok) {
+						r = res.result;
 					} else {
-						r = `${res.o.error.code}: ${res.o.error.message}`;
+						r = `${res.error.code}: ${res.error.message}`;
 					}
 				}
 				return r;
@@ -64,12 +64,10 @@
 				if (!this.deleteUri) { return false; }
 				let r = false;
 				let res = await f(this.deleteUri, { method: 'POST', body: { _id: obj._id } });
-				if (res.success) {
-					if (res.o.ok) {
-						r = true;
-					} else {
-						r = `${res.o.error.code}: ${res.o.error.message}`;
-					}
+				if (res.ok) {
+					r = true;
+				} else {
+					r = `${res.error.code}: ${res.error.message}`;
 				}
 				return r;
 			}

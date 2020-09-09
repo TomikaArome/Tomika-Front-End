@@ -12,8 +12,8 @@ import store from '../store/store';
 
 const infoReq = async () => {
 	const botInfo = await f('/discord/bot/user');
-	if (botInfo.success) {
-		store.commit('discord/setBot', botInfo.o);
+	if (botInfo.ok) {
+		store.commit('discord/setBot', botInfo.result);
 		store.dispatch('discord/startUptimeInterval');
 	}
 };
@@ -24,14 +24,14 @@ const infoReq = async () => {
 
 const startReq = async () => {
 	const start = await f('/discord/bot/start', { method: 'POST' });
-	if (start.success) {
+	if (start.ok) {
 		await infoReq();
 	}
 };
 
 const stopReq = async () => {
 	const stop = await f('/discord/bot/stop', { method: 'POST' });
-	if (stop.success) {
+	if (stop.ok) {
 		await infoReq();
 	}
 };

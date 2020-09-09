@@ -24,22 +24,24 @@ const backEnd = config['back-end-url'];
 /**
  * Wrapper for fetch. The differences from fetch include:
  *  - Instead of providing a full URL, only the path should be provided since this wrapper is meant for use with the
- *      back-end exclusively
+ *    back-end exclusively
  *  - The credentials option in the options object defaults to 'include', to also send cookies for authentication
  *  - Error handling for when the back-end is unreachable
- *  - The return value, instead of being a Response object, will be an object containing the following:
- *    - success: boolean representing whether or not the request succeeded. This includes back-end availability AND http
- *        error codes in the 4xx and 5xx categories
- *    - r: the original Response object that is normally returned by fetch
- *    - o: if the method was set to GET, the JSON is automatically processed and placed in this object
- *    - err: if the request failed, information concerning the error will be placed in here
- *  - The request module in the store will be updated with whether or not a request is in progress
+ *  - The return value is the result of the JSON obtained in the back-end. Even if the fetch result encounters an error
+ *    it will still be structured in the same was, that is to say:
+ *    - ok: Whether or not the request succeeded. If it fails, that could be due to an error when fetching or an
+ *      application error
+ *    - error: If ok is false, the error that caused it to fail. This is always an object with a code an a message, and
+ *      sometimes some extra context for the error
+ *    - result: If ok is true, the result of the request
+ *    - fetch: This property is not provided by the back-end, it's the original fetch object from the Fetch API, if
+ *      needed
  * @param path The path of the back-end resource
  * @param options The options object for fetch
  * @returns {Promise<Object>} A promise for the returned object
  */
 const f = async (path, options) => {
-	let obj = { success: true };
+	let r = {};
 	if (!options) { options = {}; }
 	if (!options.credentials) { options.credentials = 'include'; }
 	options.method = options.method ? options.method.toUpperCase() : 'GET';
@@ -50,25 +52,40 @@ const f = async (path, options) => {
 	}
 	store.commit('request/setProgress', { path, progress: true });
 	try {
-		obj.r = await fetch(backEnd + path, options);
+		let fetchResult = await fetch(backEnd + path, options);
 		store.commit('app/setBackEndUnreachable', false);
-		if (obj.r.ok) {
+		if (fetchResult.ok) {
 			try {
-				obj.o = await obj.r.json();
+				r = await fetchResult.json();
+				// At this point either the result is positive, or the back-end sent another error of its own
+				// If the error was specifically DISAUTH_REFRESH_NOT_PERMITTED, the user has been logged out so we must
+				// redirect them to a page where they can connect their Discord account again
+				// TODO
 			} catch (err) {
-				obj.success = false;
-				obj.err = err;
+				r.ok = false;
+				r.error = {
+					code: 'CLIENTFETCH_INVALID_JSON',
+					message: 'The back-end received the request but the response was not valid JSON'
+				};
 			}
 		} else {
-			obj.success = false;
+			r.ok = false;
+			r.error = {
+				code: 'CLIENTFETCH_OK_FALSE',
+				message: 'The fetch API sent back an error'
+			};
 		}
+		r.fetch = fetchResult;
 	} catch (err) {
 		store.commit('app/setBackEndUnreachable');
-		obj.success = false;
-		obj.err = err;
+		r.ok = false;
+		r.error = {
+			code: 'CLIENTFETCH_BACK_END_UNREACHABLE',
+			message: 'The back-end could not be reached'
+		};
 	}
 	store.commit('request/setProgress', { path });
-	return obj;
+	return r;
 };
 
 /*---------*

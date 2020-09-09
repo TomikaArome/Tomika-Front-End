@@ -12,8 +12,8 @@ import store from '../store/store';
 
 const userInfoReq = async () => {
 	const userInfo = await f('/user/me');
-	if (userInfo.success) {
-		store.commit('user/setUser', userInfo.o.result);
+	if (userInfo.ok) {
+		store.commit('user/setUser', userInfo.result);
 	}
 };
 
@@ -23,7 +23,7 @@ const userInfoReq = async () => {
 
 const disconnectReq = async () => {
 	let disconnect = await f('/user/disconnect', { method: 'POST' });
-	if (disconnect.success) {
+	if (disconnect.ok) {
 		store.commit('discord/setUser');
 		store.commit('nav/setSettingsOpen', false);
 	}
