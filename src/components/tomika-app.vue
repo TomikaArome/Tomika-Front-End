@@ -9,40 +9,33 @@
 			<tomika-twitch-pane v-if="$store.state.nav.twitchPaneOpen"></tomika-twitch-pane>
 		</transition>
 		<component class="tomika-content" :is="contentComponent"></component>
-		<div v-if="$store.state.nav.settingsOpen || $store.state.app.popupStack.length" id="tomika-popup-stack">
-			<div v-if="$store.state.nav.settingsOpen" class="popup-screen"
-				@click="clickPopupScreen(() => {$store.commit('nav/setSettingsOpen', false)}, $event)">
-				<tomika-settings class="big-popup"></tomika-settings>
-			</div>
-			<div class="popup-screen" v-for="(popup, popupStackIndex) in $store.state.app.popupStack"
-				:key="popupStackIndex" @click="clickPopupScreen(!popup.noScreenClose, $event)">
-				<component :is="popup.popupComponent" :class="{ 'big-popup': popup.bigPopup }"></component>
-			</div>
-		</div>
+		<tomika-popup-stack></tomika-popup-stack>
 	</div>
 </template>
 
 <script>
 	// Import dependencies
 	import Vue from 'vue';
-	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 	// Import components
 	import tomikaNavBar from './nav/tomika-nav-bar';
 	import tomikaNavDrawer from './nav/tomika-nav-drawer';
+	import tomikaPopupStack from './tomika-popup-stack';
 	import tomikaDiscordPane from './nav/tomika-discord-pane';
 	import tomikaTwitchPane from './nav/tomika-twitch-pane';
 
 	// Import content components
+	import tomikaContent404 from './content/tomika-content-404';
+	import tomikaContentUnauthorized from './content/tomika-content-unauthorized';
 	import tomikaContentIndex from './index/tomika-content-index';
 	import tomikaContentStreamControl from './stream-control/tomika-content-stream-control';
 	import tomikaContentAdmin from './admin/tomika-content-admin';
-	import tomikaContentDb from './db/tomika-content-db';
 
 	// Import requests
 	import { userInfoReq } from '../requests/user';
 
-	// Font awesome
+	// Global component registration
+	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 	Vue.component('font-awesome-icon', FontAwesomeIcon);
 
 	export default {
@@ -50,13 +43,15 @@
 		components: {
 			tomikaNavBar,
 			tomikaNavDrawer,
+			tomikaPopupStack,
 			tomikaDiscordPane,
 			tomikaTwitchPane,
 			// Content components
+			tomikaContent404,
+			tomikaContentUnauthorized,
 			tomikaContentIndex,
 			tomikaContentStreamControl,
-			tomikaContentAdmin,
-			tomikaContentDb
+			tomikaContentAdmin
 		},
 		data() {
 			return {}
@@ -65,15 +60,26 @@
 			contentComponent() {
 				if (!this.$store.state.nav.content) { return 'div'; }
 				// Get the component name from the store
-				const compName = this.$store.state.nav.content.component;
+				const o = this.$store.state.nav.content;
+				let r = o.component;
 				// Check the component specified by the store exists
 				let found = false;
 				for (let i in this.$options.components) {
 					if (found) { break; }
-					if (this.$options.components[i].name === compName) { found = true; }
+					if (this.$options.components[i].name === o.component) { found = true; }
 				}
-				// Return the component name
-				return found ? compName : { template: `<div>Component "${compName}" not registered</div>` };
+				if (!found) {
+					r = { template: `<div>Component "${o.component}" not registered</div>` };
+				}
+				// Check the user has the permission to view the content
+				if (typeof o.auth === 'string') {
+					if (!this.$store.getters['user/hasPermission'](o.auth)) { r = 'tomika-content-unauthorized'; }
+				} else if (typeof o.auth === 'function') {
+					if (!o.auth(this.$store)) { r = 'tomika-content-unauthorized'; }
+				}
+				// Return
+				console.log(r);
+				return r;
 			}
 		},
 		async mounted() {
@@ -84,11 +90,15 @@
 			window.addEventListener('message', async (event) => {
 				if (event.data && event.data.authSucceeded) {
 					await userInfoReq();
+					this.$store.commit('nav/setDiscordPaneOpen', false);
 				}
 			});
 
 			// Check the pathname
-			this.$store.dispatch('nav/switchContent', { pathname: window.location.pathname, handleErrors: true, pushState: false });
+			await this.$store.dispatch('nav/switchContent', {
+				pathname: window.location.pathname,
+				pushState: false
+			});
 		},
 		methods: {
 			positionPane(buttonId, paneId) {
@@ -101,12 +111,6 @@
 				const right = Math.max(buttonCentre, 4);
 				pane.style.right = right + 'px';
 				pane.querySelector('.chevron').style.right = (chevronCentre - right) + 'px';
-			},
-			clickPopupScreen(screenAction, event) {
-				if (screenAction && /popup-screen/.test(event.target.className)) {
-					if (typeof screenAction === "function") { screenAction(); }
-					else { this.$store.commit('app/popPopup'); }
-				}
 			}
 		}
 	}
@@ -175,14 +179,14 @@ button:not(:disabled):after {
 	transition: opacity 150ms;
 }
 button.notFilled {
-	border: 1px solid hsl(0,0%,25%);
-	color: hsl(0,0%,50%);
+	border: 1px solid hsl(0,0%,35%);
+	color: hsl(0,0%,60%);
 	padding: calc(0.5em - 1px) calc(1em - 1px);
 	background: transparent !important;
 }
 button.notFilled.red {
-	border-color: hsl(0,40%,25%);
-	color: hsl(0,40%,40%);
+	border-color: hsl(0,40%,35%);
+	color: hsl(0,40%,60%);
 }
 button.red {
 	background-color: hsl(0,20%,25%);
@@ -194,6 +198,9 @@ button.green {
 }
 button:hover:after {
 	opacity: 0.05;
+}
+button > svg {
+	margin-right: 0.5em;
 }
 input[type=text], input[type=number], input[type=password], textarea {
 	font-family: inherit;
@@ -293,50 +300,5 @@ hr {
 	width: 100%;
 	max-width: 960px;
 	padding: 20px;
-}
-#tomika-popup-stack {
-	position: fixed;
-	z-index: 999999;
-	top: 40px;
-	left: 0;
-	width: 100%;
-	height: calc(100% - 40px);
-}
-#tomika-popup-stack .popup-screen {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-#tomika-popup-stack .popup-screen:last-child {
-	background-color: hsla(0,0%,0%,0.7);
-}
-@media (min-width: 501px) {
-	.tomika-popup {
-		max-width: 80%;
-		max-height: 80%;
-	}
-}
-@media (max-width: 500px) {
-	#tomika-popup-stack *.big-popup {
-		border: none;
-		border-radius: 0;
-		width: 100%;
-		height: 100%;
-	}
-}
-.big-popup {
-	width: 60%;
-	height: 70%;
-}
-@media (max-width: 700px) {
-	.big-popup {
-		width: 80%;
-		height: 80%;
-	}
 }
 </style>

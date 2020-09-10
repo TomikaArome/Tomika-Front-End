@@ -14,9 +14,14 @@
 			<tomika-discord-pfp size="64" :discord-id="$store.getters['user/discordId']" :avatar="$store.getters['user/avatar']" />
 			<div class="displayName">{{ $store.getters['user/name'] }}</div>
 			<div class="tag">#{{ $store.getters['user/discriminator'] }}</div>
-			<!--<button v-if="$store.state.discord.user.admin" class="settings-button" @click="openSettings">
-				<font-awesome-icon icon="cogs"></font-awesome-icon>Settings
-			</button>-->
+			<div class="button-list">
+				<button v-if="$store.getters['user/hasPermission']('perm.user.settings.view')">
+					<font-awesome-icon icon="cogs"></font-awesome-icon>Settings
+				</button>
+				<button class="notFilled" @click="clickDisconnectButton">
+					<font-awesome-icon icon="lock"></font-awesome-icon>Disconnect
+				</button>
+			</div>
 		</template>
 		<template v-else>
 			<template>
@@ -41,9 +46,11 @@
 						<div>Your account data is not collected</div>
 					</div>
 				</div>-->
-				<button class="connect-button" v-on:click="clickConnectButton">
-					<font-awesome-icon :icon="['fab', 'discord']"></font-awesome-icon>Connect now!
-				</button>
+				<div class="button-list">
+					<button class="connect-button" v-on:click="clickConnectButton">
+						<font-awesome-icon :icon="['fab', 'discord']"></font-awesome-icon>Connect now!
+					</button>
+				</div>
 			</template>
 		</template>
 	</div>
@@ -51,18 +58,16 @@
 
 <script>
 	// Import dependencies
-	import Vue from 'vue';
 	import { library } from '@fortawesome/fontawesome-svg-core';
 	import { faCheck, faLock, faInfoCircle, faCogs } from '@fortawesome/free-solid-svg-icons';
 	import { faDiscord } from '@fortawesome/free-brands-svg-icons';
-	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+	import { userDisconnectReq } from '../../requests/user';
 
 	// Import components
 	import tomikaDiscordPfp from '../wrappers/tomika-discord-pfp';
 
 	// Font awesome
 	library.add(faCheck, faLock, faDiscord, faInfoCircle, faCogs);
-	Vue.component('font-awesome-icon', FontAwesomeIcon);
 
 	export default {
 		name: "tomika-discord-pane",
@@ -76,9 +81,12 @@
 			clickConnectButton() {
 				window.open(`${this.$store.state.app.backEnd}/user/connect`);
 			},
-			openSettings() {
-				this.$store.commit('nav/setSettingsOpen', !this.$store.state.nav.settingsOpen);
+			clickDisconnectButton() {
+				userDisconnectReq();
 				this.$store.commit('nav/setDiscordPaneOpen', false);
+			},
+			clickSettingsButton() {
+				// TODO
 			}
 		}
 	}
@@ -103,6 +111,13 @@
 	p:last-child {
 		margin-bottom: 0;
 	}
+	.button-list {
+		display: flex;
+		flex-direction: column;
+	}
+	.button-list > * {
+		align-self: stretch;
+	}
 	.checklist {
 		display: flex;
 		flex-direction: column;
@@ -114,7 +129,7 @@
 		padding: 2px 0px;
 	}
 	.checklist > div > div:nth-child(1) {
-		padding: 0px 8px;
+		padding: 0 8px;
 		text-align: right;
 		color: hsl(120,30%,50%);
 		transform: translateY(5%);
@@ -127,7 +142,10 @@
 		text-align: left;
 		color: hsl(0,0%,70%);
 	}
-	.connect-button, .settings-button {
+	button {
+		margin-top: 4px;
+	}
+	button:first-of-type {
 		margin-top: 12px;
 	}
 	.connect-button:not(.notFilled) {

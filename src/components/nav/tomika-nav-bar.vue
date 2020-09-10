@@ -48,19 +48,15 @@
 
 <script>
 	// Import dependencies
-	import Vue from 'vue';
 	import { library } from '@fortawesome/fontawesome-svg-core';
 	import { faBars } from '@fortawesome/free-solid-svg-icons';
 	import { faTwitch, faTwitter } from '@fortawesome/free-brands-svg-icons';
-	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-	//import { wait } from '../../util';
 
 	// Import components
 	import tomikaDiscordPfp from '../wrappers/tomika-discord-pfp';
 
 	// Font awesome
 	library.add(faBars, faTwitch, faTwitter);
-	Vue.component('font-awesome-icon', FontAwesomeIcon);
 
 	export default {
 		name: "tomika-nav",
@@ -71,9 +67,6 @@
 			return {
 				tomikaInkLogoUrl: require('../../assets/images/tomika.ink.svg')
 			}
-		},
-		created() {
-			this.updateTwitchStatus(this.$store.state.twitch.updateFrequency);
 		},
 		mounted() {
 			/**
@@ -101,50 +94,6 @@
 			clickOutPaneCheck(['tomika-twitch-pane', 'tomika-nav-bar-twitch-button'], () => {
 				this.$store.commit('nav/setTwitchPaneOpen', false);
 			});
-		},
-		methods: {
-			/**
-			 * Method which updates the status of the twitch stream
-			 * @param timeUntilNextUpdate Time in milliseconds until the next update is performed
-			 */
-			async updateTwitchStatus(/*timeUntilNextUpdate*/) {
-				return;
-				/*// Set the headers for the requests
-				const headers = {
-					'Accept': 'application/json',
-					'Client-Id': this.$store.state.twitch.apiClientId
-				};
-				// Request the Twitch API for the status of the stream
-				const response = await fetch(`https://api.twitch.tv/helix/streams?user_login=${this.$store.state.twitch.userName}`,
-					{ headers }).catch(() => {
-					this.$store.commit('twitch/setActiveStream');
-				});
-				if (response.ok) {
-					const res = await response.json();
-					if (res.data[0]) {
-						// Get game data
-						const response2 = await fetch(`https://api.twitch.tv/helix/games?id=${res.data[0].game_id}`,
-							{ headers }).catch(() => {
-							this.$store.commit('twitch/setActiveStream');
-						});
-						if (response2.ok) {
-							const res2 = await response2.json();
-							res2.data[0].box_art_url = res2.data[0].box_art_url.replace(/{width}/, '138')
-								.replace(/{height}/, '190');
-							res.data[0].game = res2.data[0];
-							this.$store.commit('twitch/setActiveStream', res.data[0]);
-						}
-					} else {
-						this.$store.commit('twitch/setActiveStream');
-					}
-					if (typeof timeUntilNextUpdate === "number" && timeUntilNextUpdate >= 100) {
-						await wait(timeUntilNextUpdate);
-						this.updateTwitchStatus(timeUntilNextUpdate);
-					}
-				} else {
-					this.$store.commit('twitch/setActiveStream');
-				}*/
-			}
 		}
 	};
 </script>

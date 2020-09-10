@@ -21,11 +21,10 @@ const userInfoReq = async () => {
  | POST |
  *------*/
 
-const disconnectReq = async () => {
+const userDisconnectReq = async () => {
 	let disconnect = await f('/user/disconnect', { method: 'POST' });
 	if (disconnect.ok) {
-		store.commit('discord/setUser');
-		store.commit('nav/setSettingsOpen', false);
+		store.commit('user/setUser');
 	}
 };
 
@@ -35,5 +34,5 @@ const disconnectReq = async () => {
 
 export {
 	userInfoReq,
-	disconnectReq
+	userDisconnectReq
 }
