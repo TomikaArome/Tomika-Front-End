@@ -28,11 +28,58 @@ const userDisconnectReq = async () => {
 	}
 };
 
+const userSplatnetConnectRedirectReq = async (redirectUri) => {
+	let response = await f('/user/splatnet/connect-redirect', {
+		method: 'POST',
+		body: {
+			redirectUri: redirectUri
+		}
+	});
+	console.log(response);
+	if (response.ok) {
+		// Do another user info request to refresh
+		await userInfoReq();
+	} else if (typeof response.error === 'object' && response.error.code) {
+		return response.error;
+	}
+	return true;
+};
+
+const userSplatnetDisconnectReq = async () => {
+	let response = await f('/user/splatnet/disconnect', { method: 'POST' });
+	if (response.ok) {
+		await userInfoReq();
+	}
+	return response.ok;
+};
+
+/**
+ * Manually sets the iksm_session cookie
+ * @param cookie The cookie to set
+ */
+const userSplatnetManualCookieReq = async (cookie) => {
+	if (!/iksm_session=[0-9a-f]+(.*)expires=([^;]+)(;|$)/.test(cookie)) { return 'SPLATNET_COOKIE_BADLY_FORMED'; }
+	let response = await f('/user/splatnet/cookie', {
+		method: 'POST',
+		body: {
+			cookie: cookie
+		}
+	});
+	if (response.ok) {
+		return true;
+	} else {
+		return response.error.code;
+	}
+};
+
 /*---------*
  | Exports |
  *---------*/
 
 export {
 	userInfoReq,
-	userDisconnectReq
+	userDisconnectReq,
+	userSplatnetConnectRedirectReq,
+	userSplatnetDisconnectReq,
+	userSplatnetManualCookieReq
 }

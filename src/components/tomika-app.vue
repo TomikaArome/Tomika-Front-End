@@ -15,7 +15,7 @@
 
 <script>
 	// Import dependencies
-	import Vue from 'vue';
+	import '../fa.js';
 
 	// Import components
 	import tomikaNavBar from './nav/tomika-nav-bar';
@@ -30,13 +30,10 @@
 	import tomikaContentIndex from './index/tomika-content-index';
 	import tomikaContentStreamControl from './stream-control/tomika-content-stream-control';
 	import tomikaContentAdmin from './admin/tomika-content-admin';
+	import tomikaContentUser from './user/tomika-content-user';
 
 	// Import requests
 	import { userInfoReq } from '../requests/user';
-
-	// Global component registration
-	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-	Vue.component('font-awesome-icon', FontAwesomeIcon);
 
 	export default {
 		name: 'tomika-app',
@@ -51,7 +48,8 @@
 			tomikaContentUnauthorized,
 			tomikaContentIndex,
 			tomikaContentStreamControl,
-			tomikaContentAdmin
+			tomikaContentAdmin,
+			tomikaContentUser
 		},
 		data() {
 			return {}
@@ -78,7 +76,6 @@
 					if (!o.auth(this.$store)) { r = 'tomika-content-unauthorized'; }
 				}
 				// Return
-				console.log(r);
 				return r;
 			}
 		},
@@ -301,4 +298,16 @@ hr {
 	max-width: 960px;
 	padding: 20px;
 }
+
+/*---------------------*
+ | Transition elements |
+ *---------------------*/
+
+.page-slide-left-enter-active, .page-slide-left-leave-active { transition: transform 200ms ease, opacity 200ms ease; }
+.page-slide-left-enter { transform: translateX(50%); opacity: 0; }
+.page-slide-left-leave-to { transform: translateX(-50%); opacity: 0; }
+.page-slide-right-enter-active, .page-slide-right-leave-active { transition: transform 200ms ease, opacity 200ms ease; }
+.page-slide-right-enter { transform: translateX(-50%); opacity: 0; }
+.page-slide-right-leave-to { transform: translateX(50%); opacity: 0; }
+
 </style>

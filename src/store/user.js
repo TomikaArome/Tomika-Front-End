@@ -35,6 +35,23 @@ export default {
 			return state.o.permissions.reduce((acc, perm) => {
 				return acc || permString.substring(0, perm.length) === perm;
 			}, false);
+		},
+		splatnetConnected: (state) => {
+			return state === null || typeof state.o.splatnet !== 'object' ? false : state.o.splatnet.connected;
+		},
+		splatnetManual: (state) => {
+			return state === null || typeof state.o.splatnet !== 'object' ? false : state.o.splatnet.manual;
+		},
+		// The following is a short hand for splatnetConnected && !splatnetManual
+		splatnetConnectedAuto: (state, getters) => {
+			return getters.splatnetConnected && !getters.splatnetManual;
+		},
+		splatnetCookie: (state) => {
+			return state === null || typeof state.o.splatnet !== 'object' ? '' : String(state.o.splatnet.cookie);
+		},
+		splatnetCookieExpired: (state) => {
+			return state === null || typeof state.o.splatnet !== 'object' || typeof state.o.splatnet.cookieExpired !==
+			'boolean' ? false : state.o.splatnet.cookieExpired;
 		}
 	},
 	mutations: {

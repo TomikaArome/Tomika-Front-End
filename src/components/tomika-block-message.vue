@@ -7,20 +7,18 @@
 
 <script>
 	// Import dependencies
-	import Vue from 'vue';
 	import { library } from '@fortawesome/fontawesome-svg-core';
-	import { faInfoCircle, faExclamationTriangle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
-	import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+	import { faInfoCircle, faExclamationTriangle, faExclamationCircle, faCheck } from '@fortawesome/free-solid-svg-icons';
 
 	// Font awesome
-	library.add(faInfoCircle, faExclamationTriangle, faExclamationCircle);
-	Vue.component('font-awesome-icon', FontAwesomeIcon);
+	library.add(faInfoCircle, faExclamationTriangle, faExclamationCircle, faCheck);
 
 	// The different types
 	const types = {
 		'info': 'info-circle',
 		'warning': 'exclamation-triangle',
-		'error': 'exclamation-circle'
+		'error': 'exclamation-circle',
+		'success': 'check'
 	};
 
 	export default {
@@ -78,5 +76,10 @@
 		color: hsl(0,25%,75%);
 		border: 1px dashed hsla(0,25%,75%,0.5);
 		background-color: hsla(0,20%,20%,0.5);
+	}
+	.success {
+		color: hsl(120,25%,75%);
+		border: 1px dashed hsla(120,25%,75%,0.5);
+		background-color: hsla(120,20%,20%,0.5);
 	}
 </style>

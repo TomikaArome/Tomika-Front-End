@@ -49,6 +49,13 @@ export default {
 				auth: 'perm.admin.access'
 			},
 			{
+				name: 'User settings',
+				title: 'User settings',
+				pathname: '/user',
+				component: 'tomika-content-user',
+				auth: (store) => { return store.getters['user/connected']; }
+			},
+			{
 				name: 'Stream controller',
 				title: 'Stream controller',
 				pathname: '/stream-control',
@@ -103,6 +110,10 @@ export default {
 				});
 			} else if (typeof component !== 'undefined') {
 				contentData = state.contentData.find((o) => { return o.component === component; });
+			}
+			// If the content object found has a dynamic pathname (not a string), the pathname parameter will have to have been set
+			if (typeof pathname === 'undefined' && contentData && typeof contentData.pathname !== 'string') {
+				contentData = undefined;
 			}
 			// If nothing was found, use the 404 component
 			if (!contentData) {

@@ -15,7 +15,7 @@
 			<div class="displayName">{{ $store.getters['user/name'] }}</div>
 			<div class="tag">#{{ $store.getters['user/discriminator'] }}</div>
 			<div class="button-list">
-				<button v-if="$store.getters['user/hasPermission']('perm.user.settings.view')">
+				<button v-if="$store.getters['user/hasPermission']('perm.user.settings.view')" @click="clickSettingsButton">
 					<font-awesome-icon icon="cogs"></font-awesome-icon>Settings
 				</button>
 				<button class="notFilled" @click="clickDisconnectButton">
@@ -86,7 +86,8 @@
 				this.$store.commit('nav/setDiscordPaneOpen', false);
 			},
 			clickSettingsButton() {
-				// TODO
+				this.$store.dispatch('nav/switchContent', { pathname: '/user' });
+				this.$store.commit('nav/setDiscordPaneOpen', false);
 			}
 		}
 	}
