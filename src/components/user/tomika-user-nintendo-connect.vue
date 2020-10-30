@@ -244,6 +244,10 @@ h1 > div {
 section p {
 	margin: 8px 0;
 }
+.greyed {
+	font-size: 0.8em;
+	color: hsl(0,0%,70%);
+}
 #tomika-user-nintendo-connect {
 	overflow-x: hidden;
 }
