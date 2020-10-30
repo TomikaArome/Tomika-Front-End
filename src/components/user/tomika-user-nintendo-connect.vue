@@ -189,7 +189,6 @@
 				this.ninConnBadlyFormedCookie = false;
 				this.ninConnAlreadyExpiredCookie = false;
 				let r = await userSplatnetManualCookieReq(this.ninConnManualCookie);
-				console.log(r);
 				if (r === 'SPLATNET_COOKIE_BADLY_FORMED') { this.ninConnManualCookieErr = 'The cookie you entered is not properly formed. See below for an example.'; }
 				if (r === 'SPLATNET_MANUAL_COOKIE_EXPIRED') { this.ninConnManualCookieErr = 'The cookie you entered has already expired.'; }
 				else if (r !== true) { this.ninConnManualCookieErr = 'An unexpected error occurred.'; }

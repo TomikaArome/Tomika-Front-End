@@ -35,7 +35,6 @@ const userSplatnetConnectRedirectReq = async (redirectUri) => {
 			redirectUri: redirectUri
 		}
 	});
-	console.log(response);
 	if (response.ok) {
 		// Do another user info request to refresh
 		await userInfoReq();

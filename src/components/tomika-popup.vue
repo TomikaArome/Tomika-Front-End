@@ -74,7 +74,6 @@
 						buttonAction: (close) => { close(); }
 					});
 				}
-				console.log(this);
 				return arr;
 			}
 		}
