@@ -31,6 +31,7 @@
 	import tomikaContentStreamControl from './stream-control/tomika-content-stream-control';
 	import tomikaContentAdmin from './admin/tomika-content-admin';
 	import tomikaContentUser from './user/tomika-content-user';
+	import tomikaContentOuistiti from './ouistiti/tomika-content-ouistiti';
 
 	// Import requests
 	import { userInfoReq } from '../requests/user';
@@ -49,7 +50,8 @@
 			tomikaContentIndex,
 			tomikaContentStreamControl,
 			tomikaContentAdmin,
-			tomikaContentUser
+			tomikaContentUser,
+			tomikaContentOuistiti
 		},
 		data() {
 			return {}

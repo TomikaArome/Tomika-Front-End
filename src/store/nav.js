@@ -61,6 +61,12 @@ export default {
 				pathname: '/stream-control',
 				component: 'tomika-content-stream-control',
 				auth: () => { return false; }
+			},
+			{
+				name: 'Ouistiti',
+				title: 'Ouistiti',
+				pathname: '/ouistiti',
+				component: 'tomika-content-ouistiti'
 			}
 		]
 
