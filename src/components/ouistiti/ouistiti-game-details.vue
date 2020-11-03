@@ -1,14 +1,13 @@
 <template>
-	<div class="game-details" :class="{ joinable: clickable && game.joinable }">
-		<div class="game-graphic">
-			<font-awesome-icon :icon="['fa-tomika', 'spade']"></font-awesome-icon>
-		</div>
+	<div class="game-details" :class="{ joinable: clickable && game.joinable, full: !game.joinable }">
+		<ouistiti-player-graphic :id="game.hostId" :colour="game.hostColour"></ouistiti-player-graphic>
 		<div class="game-middle-details">
 			<div>{{ game.hostNickname }}</div>
 			<div>
 				<font-awesome-icon v-if="game.passwordProtected" icon="lock" style="margin-right: 4px;"></font-awesome-icon>
 				<template v-if="game.inProgress">In progress - round {{ game.round }}/{{ game.totalRoundCount }}</template>
-				<template v-else>Joinable<template v-if="game.passwordProtected"> - Password protected</template></template>
+				<template v-else-if="game.joinable">Joinable<template v-if="game.passwordProtected"> - Password protected</template></template>
+				<template v-else>Game full</template>
 			</div>
 		</div>
 		<div class="game-player-count">
@@ -18,8 +17,12 @@
 </template>
 
 <script>
+	import OuistitiPlayerGraphic from "./ouistiti-player-graphic";
 	export default {
 		name: "ouistiti-game-details",
+		components: {
+			OuistitiPlayerGraphic
+		},
 		props: ['game', 'clickable']
 	}
 </script>
@@ -39,16 +42,9 @@
 .joinable:hover {
 	background-color: hsla(0,0%,100%,0.05);
 }
-.game-graphic {
-	background-color: hsl(240,50%,60%);
-	border-radius: 8px;
-	width: 50px;
-	height: 50px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: hsla(0,0%,100%,0.5);
-	font-size: 1.5em;
+.full {
+	opacity: 0.5;
+	cursor: not-allowed;
 }
 .game-middle-details {
 	flex-grow: 1;
