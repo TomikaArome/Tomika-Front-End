@@ -100,6 +100,7 @@
 <script>
 	// Import dependencies
 	import io from 'socket.io-client';
+	import socketIoJsonParser from 'socket.io-json-parser';
 	import { library } from '@fortawesome/fontawesome-svg-core';
 	import { faPlus, faLock, faUsers, faCrown, faCheck, faTimes, faChevronUp, faChevronDown, faChevronRight,
 		faChevronLeft } from '@fortawesome/free-solid-svg-icons';
@@ -258,7 +259,9 @@
 		mounted() {
 			try {
 				// Attempt to establish a connection to the backend
-				this.socket = io(`${this.$store.state.app.backEnd}/ouistiti`);
+				this.socket = io(`${this.$store.state.app.backEnd}/ouistiti`, {
+					parser: socketIoJsonParser
+				});
 
 				/*---------------------------*
 				 | Connection related events |
