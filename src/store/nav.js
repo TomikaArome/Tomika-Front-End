@@ -63,10 +63,10 @@ export default {
 				auth: () => { return false; }
 			},
 			{
-				name: 'Ouistiti',
-				title: 'Ouistiti',
-				pathname: '/ouistiti',
-				component: 'tomika-content-ouistiti'
+				name: 'Cards',
+				title: 'Cards',
+				pathname: '/cards',
+				component: 'tomika-content-cards'
 			}
 		]
 

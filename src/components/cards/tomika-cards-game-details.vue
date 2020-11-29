@@ -1,6 +1,6 @@
 <template>
 	<div class="game-details" :class="{ joinable: clickable && game.joinable, full: !game.joinable }">
-		<ouistiti-player-graphic :id="game.hostId" :colour="game.hostColour"></ouistiti-player-graphic>
+		<tomika-cards-player-graphic :id="game.hostId" :colour="game.hostColour"></tomika-cards-player-graphic>
 		<div class="game-middle-details">
 			<div>{{ game.hostNickname }}</div>
 			<div>
@@ -17,11 +17,11 @@
 </template>
 
 <script>
-	import OuistitiPlayerGraphic from "./ouistiti-player-graphic";
+	import tomikaCardsPlayerGraphic from "./tomika-cards-player-graphic";
 	export default {
-		name: "ouistiti-game-details",
+		name: "tomika-cards-game-details",
 		components: {
-			OuistitiPlayerGraphic
+			tomikaCardsPlayerGraphic
 		},
 		props: ['game', 'clickable']
 	}

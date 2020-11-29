@@ -4,11 +4,12 @@ import Vuex from 'vuex';
 
 // Import store modules
 import appModule from './app';
-import userModule from './user';
+import cardsModule from './cards';
 import navModule from './nav';
 import requestModule from './request';
 import twitchModule from './twitch';
 import twitterModule from './twitter';
+import userModule from './user';
 
 // Inject the store into Vue
 Vue.use(Vuex);
@@ -28,10 +29,11 @@ export default new Vuex.Store({
 	},
 	modules: {
 		app: appModule,
-		user: userModule,
+		cards: cardsModule,
 		nav: navModule,
 		request: requestModule,
 		twitch: twitchModule,
-		twitter: twitterModule
+		twitter: twitterModule,
+		user: userModule,
 	}
 });

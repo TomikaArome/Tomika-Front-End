@@ -9,7 +9,7 @@
 	import { faHeart } from '@fortawesome/free-solid-svg-icons';
 	library.add(faHeart);
 	export default {
-		name: "ouistiti-player-graphic",
+		name: "tomika-cards-player-graphic",
 		props: {
 			colour: {
 				type: String,
