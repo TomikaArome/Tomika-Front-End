@@ -1,7 +1,13 @@
 // Import dependencies
 import Vue from 'vue';
 import io from 'socket.io-client';
-import { wait } from '../util';
+import { wait } from '../../util';
+
+// Game modules
+import gameModuleOuistiti from './gameModules/ouistiti';
+const gameModules = {
+	'game-module-ouistiti': gameModuleOuistiti
+};
 
 // Export store module
 export default {
@@ -10,21 +16,38 @@ export default {
 		// Socket
 		socket: null,
 
-		// Arrays
+		// Collections
 		games: [],
 		players: {},
 		cards: {},
 		cardGroups: {},
 
-		// Game progress
+		// Game related properties
+		gameModuleId: 'game-module-generic',
+		gameModuleData: {},
 		inProgress: false,
 		round: 1,
 		phase: 'playing',
 
-		selectedGameId: '',
+		// Player related properties
 		selfId: '',
 		hostId: '',
 		playerIdOrder: [],
+
+		// Game selection
+		selectedGameId: '',
+		gameSelectionStep: 0, // -1 = not connected, 0 = game selection, 1 = create game screen, 2 = join game screen
+		gameSelectionPrevStep: 0,
+		chosenNickname: '',
+		retrievedDiscordName: false,
+		password: '',
+		joinGameError: '',
+		nicknameError: '',
+
+		// UI
+		leftDrawerVisible: true,
+
+		// TODO - Deprecated
 		totalCardCount: 32,
 		totalRoundCount: 18,
 
@@ -44,8 +67,8 @@ export default {
 			return state.games.find(g => state.selectedGameId === g.id);
 		},
 		inGame: (state, getters) => { return getters.playerCount > 0; },
-		self: (state) => { return state.players[state.selfId] ? state.players[state.selfId] : {}; },
-		host: (state) => { return state.players[state.hostId] ? state.players[state.hostId] : {}; },
+		self: (state) => { return state.players[state.selfId] || {}; },
+		host: (state) => { return state.players[state.hostId] || {}; },
 		isHost: (state) => { return state.selfId === state.hostId; },
 		playerCount: (state) => { return state.playerIdOrder.length },
 		playerOrder: (state) => {
@@ -64,7 +87,8 @@ export default {
 			return Object.keys(state.cards).filter(cardId => state.cards[cardId].cardGroupId === cardGroupId).map(cardId => {
 				return { cardId: cardId, ...state.cards[cardId] };
 			});
-		}
+		},
+		gameModule: (state) => { return gameModules[state.gameModuleId] || {}; }
 	},
 	mutations: {
 		reset: (state) => {
@@ -72,6 +96,7 @@ export default {
 			state.selectedGameId = '';
 			state.selfId = '';
 			state.hostId = '';
+			state.gameModuleId = 'game-module-generic';
 			state.inProgress = false;
 			state.players = [];
 			state.playerIdOrder = [];
@@ -83,10 +108,28 @@ export default {
 		setSelectedGameId: (state, payload) => { state.selectedGameId = payload; },
 		setGames: (state, payload) => { state.games = payload; },
 
-		// Game related mutations
-		setInProgress: (state, inProgress) => { state.inProgress = inProgress; },
+		// --- GAME RELATED MUTATIONS ---
 
-		// Player related mutations
+		setInProgress: (state, inProgress) => { state.inProgress = inProgress; },
+		setGameModuleId: (state, gameModuleId) => {
+			if (state.gameModuleId !== gameModuleId && gameModules[gameModuleId]) {
+				state.gameModuleId = gameModuleId;
+				state.gameModuleData = {};
+			}
+		},
+		setGameModuleData: (state, { key, value }) => {
+			if (typeof key === 'undefined') { state.gameModuleData = {}; }
+			else {
+				if (typeof value === 'undefined') {
+					Vue.delete(state.gameModuleData, key);
+				} else {
+					Vue.set(state.gameModuleData, key, value);
+				}
+			}
+		},
+
+		// --- PLAYER RELATED MUTATIONS ---
+
 		setPlayers: (state, payload) => {
 			state.players = payload.reduce((acc, curr) => { acc[curr.id] = curr; return acc; }, {});
 		},
@@ -102,7 +145,8 @@ export default {
 			if (state.players[playerId]) { state.players[playerId].colour = newColour; }
 		},
 
-		// Card related mutations
+		// --- CARD RELATED MUTATIONS ---
+
 		setCard: (state, cardData) => {
 			if (typeof cardData.cardId !== 'string') { return; }
 			let newCardData = state.cards[cardData.cardId] || { cardId: cardData.cardId };
@@ -115,7 +159,8 @@ export default {
 			Vue.delete(state.cards, cardId);
 		},
 
-		// Card group related mutations
+		// --- CARD GROUP RELATED MUTATIONS ---
+
 		setCardGroup: (state, cardGroupData) => {
 			if (typeof cardGroupData.cardGroupId !== 'string') { return; }
 			let newCardGroupData = state.cardGroups[cardGroupData.cardGroupId] || { cardId: cardGroupData.cardGroupId };
@@ -126,7 +171,26 @@ export default {
 		},
 		deleteCardGroup: (state, cardGroupId) => {
 			Vue.delete(state.cardGroups, cardGroupId);
-		}
+		},
+
+		// --- GAME SELECTION RELATED MUTATIONS ---
+
+		gameSelectionChangeStep: (state, step) => {
+			if (step === 0) { state.selectedGameId = ''; }
+			state.password = '';
+			state.joinGameError = '';
+			state.gameSelectionPrevStep = state.gameSelectionStep;
+			state.gameSelectionStep = step;
+		},
+		setJoinGameError: (state, errorMessage) => { state.joinGameError = errorMessage; },
+		setNicknameError: (state, errorMessage) => { state.nicknameError = errorMessage; },
+		setChosenNickname: (state, nickname) => { state.chosenNickname = nickname; },
+		setRetrievedDiscordName: (state) => { state.retrievedDiscordName = true; },
+
+		// --- UI RELATED MUTATIONS ---
+
+		setLeftDrawerVisible: (state, visible) => { state.leftDrawerVisible = visible; }
+
 	},
 	actions: {
 
@@ -134,7 +198,7 @@ export default {
 		 * Connects to the backend websocket using the cards namespace. This mutation also defines the event handlers.
 		 * Callback functions for each of these events can be passed as a payload
 		 */
-		connect: ({ state, rootState, commit }, eventHandlers) => {
+		connect: (store, eventHandlers) => {
 			// Validate payload
 			for (let i in eventHandlers) {
 				if (eventHandlers.hasOwnProperty(i) && typeof eventHandlers[i] !== 'function') { throw 'Invalid event handler for "' + i + '"'; }
@@ -143,47 +207,64 @@ export default {
 			try {
 				// Attempt to establish a connection to the backend
 				// TODO - change to cards namespace
-				commit('setSocket', io(`${rootState.app.backEnd}/cards`));
+				store.commit('setSocket', io(`${store.rootState.app.backEnd}/cards`));
 
 				// Object of event handlers as defined by this store module, intended for changes in data
 				// The reason we split the two is to avoid clutter in the component
 				const stateEventHandlers = {
 
-					// --- Connection related events
+					// --- CONNECTION RELATED EVENTS ---
 
-					disconnect: () => { commit('reset'); },
+					connect: () => { store.commit('gameSelectionChangeStep', 0); },
+					connect_error: () => { store.commit('gameSelectionChangeStep', -1); },
+					disconnect: () => { console.log('disconnect'); store.commit('reset'); },
 
-					// --- Game management events
+					// --- GAME SELECTION RELATED EVENTS ---
 
-					listGames: (data) => { commit('setGames', data); },
-					joinGame: (data) => {
-						commit('setPlayers', data.players);
-						commit('setPlayerIdOrder', data.playerIdOrder);
-						commit('setSelfId', data.selfId);
-						commit('setHostId', data.hostId);
+					listGames: (data) => {
+						// Check that the selected game, if there is any, is still available to join
+						if (store.state.selectedGameId) {
+							// Find the game in the new array
+							let game = data.find(e => e.id === store.state.selectedGameId);
+							if (!game || !game.joinable) {
+								store.commit('gameSelectionChangeStep', 0);
+							}
+						}
+						store.commit('setGames', data);
 					},
+					joinGame: (data) => {
+						store.commit('gameSelectionChangeStep', 0);
+						store.commit('setPlayers', data.players);
+						store.commit('setPlayerIdOrder', data.playerIdOrder);
+						store.commit('setSelfId', data.selfId);
+						store.commit('setHostId', data.hostId);
+					},
+					joinGameError: (errorMessage) => { store.commit('setJoinGameError', errorMessage); },
 					leaveGame: () => {
-						commit('reset');
-						state.socket.emit('listGames');
+						store.commit('reset');
+						store.state.socket.emit('listGames');
 					},
 					addPlayer: (data) => {
-						commit('addPlayer', data.player);
-						commit('setPlayerIdOrder', data.playerIdOrder);
+						store.commit('addPlayer', data.player);
+						store.commit('setPlayerIdOrder', data.playerIdOrder);
 					},
 					removePlayer: (data) => {
-						commit('removePlayer', data.id);
-						commit('setPlayerIdOrder', data.playerIdOrder);
-						commit('setHostId', data.hostId);
+						store.commit('removePlayer', data.id);
+						store.commit('setPlayerIdOrder', data.playerIdOrder);
+						store.commit('setHostId', data.hostId);
 					},
 					setNickname: ({ id, newNickname }) => {
-						commit('setNickname', { playerId: id, newNickname: newNickname });
+						store.commit('setNicknameError', '');
+						store.commit('setNickname', { playerId: id, newNickname: newNickname });
 					},
-					setColour: ({ id, newColour }) => {
-						commit('setColour', { playerId: id, newColour: newColour });
+					nicknameError: (errorMessage) => {
+						store.commit('setNicknameError', errorMessage);
+						setTimeout(() => { store.commit('setNicknameError', ''); }, 10000);
+						store.commit('setChosenNickname', store.getters.self.nickname);
 					},
-					reorderPlayers: ({ playerIdOrder }) => {
-						commit('setPlayerIdOrder', playerIdOrder);
-					},
+					setColour: ({ id, newColour }) => { store.commit('setColour', { playerId: id, newColour: newColour }); },
+					reorderPlayers: ({ playerIdOrder }) => { store.commit('setPlayerIdOrder', playerIdOrder); },
+					setGameModule: ({ gameModuleId }) => { store.commit('setGameModuleId', gameModuleId); },
 
 					/**
 					 * The game event is the event received when the server is communicating changes in the flow of the
@@ -200,28 +281,25 @@ export default {
 						for (let action of actionsArray) {
 							switch (action.actionType) {
 								case 'start':
-									commit('setInProgress', true);
+									store.commit('setInProgress', true);
 									break;
 								case 'cardGroup':
-									commit('setCardGroup', action);
+									store.commit('setCardGroup', action);
 									break;
 								case 'card':
-									commit('setCard', action);
+									store.commit('setCard', action);
 									break;
 								default:
 									// Any action not listed here will be a module specific action
-									// TODO
+									if (typeof action.actionType === 'string' && action.actionType.length > 0 &&
+										typeof store.state.gameModule[action.actionType] === 'function') {
+										await store.state.gameModule[action.actionType](store, action);
+									}
 									break;
 							}
 							// Check whether or not to delay the next action
 							if (action.delayNextAction) { await wait(100); }
 						}
-						/*console.log(Object.values(state.cards).reduce((acc, curr) => {
-							let a = acc[curr.cardGroupId] || { role: state.cardGroups[curr.cardGroupId].role, n: 0 };
-							a.n++;
-							acc[curr.cardGroupId] = a;
-							return acc;
-						}, {}));*/
 					}
 				};
 
@@ -235,12 +313,18 @@ export default {
 						eventHandlers[event](data);
 						stateEventHandlers[event](data);
 					}; }
-					state.socket.on(event, f);
+					store.state.socket.on(event, f);
 				}
 
 			} catch (err) {
 				// Nothing to do here
 			}
+		},
+
+		disconnect: ({ state, commit }) => {
+			state.socket.emit('leaveGame');
+			state.socket.disconnect();
+			commit('reset');
 		}
 
 	}

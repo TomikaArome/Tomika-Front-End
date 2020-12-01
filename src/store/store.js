@@ -4,7 +4,7 @@ import Vuex from 'vuex';
 
 // Import store modules
 import appModule from './app';
-import cardsModule from './cards';
+import cardsModule from './cards/cards';
 import navModule from './nav';
 import requestModule from './request';
 import twitchModule from './twitch';

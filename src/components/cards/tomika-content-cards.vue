@@ -1,43 +1,39 @@
 <template>
 	<div id="tomika-content-ouistiti">
-		<div class="game" :class="{ 'is-host': g('isHost') }">
+		<div class="game">
 			<div class="playing-area">
-				<tomika-playing-card v-for="card in s.cards" :key="card.cardId" :card="card"></tomika-playing-card>
-				<!--<template v-for="(p, pOrder) in s.players">
-					<tomika-playing-card v-for="(c, cOrder) in p.cards" :key="p.id + '-' + cOrder" :value="c" :owner-order="pOrder"
-						:number-of-players="s.players.length" :card-index="cOrder" :number-of-cards="p.cards.length"></tomika-playing-card>
-				</template>-->
+				<tomika-playing-card v-for="card in cards" :key="card.cardId" :card="card"></tomika-playing-card>
 			</div>
 			<div class="drawer left-drawer" :style="{ transform: 'translateX(' + (leftDrawerVisible ? '0' : '-300px') + ')' }">
 				<h1>Player options</h1>
 				<section>
 					<div class="nickname-row">
-						<input type="text" v-model="chosenNickname" @keyup="setNickname($event)">
+						<input type="text" :value="chosenNickname" @input="setChosenNickname($event.target.value)" @keyup="checkSubmit($event)">
 						<button @click="setNickname">Change nickname</button>
 					</div>
 					<tomika-block-message v-if="nicknameError" type="error" :small="true">{{ nicknameError }}</tomika-block-message>
 					<div class="colour-picker-row">
-						<div v-for="(hslCode, colourName) in s.colours" :key="colourName" :style="{ backgroundColor: hslCode }"
-						:class="{ taken: g('takenColours').indexOf(colourName) > -1 }" @click="setColour(colourName, g('takenColours').indexOf(colourName) > -1)">
-							<font-awesome-icon v-if="g('self').colour === colourName" icon="check"></font-awesome-icon>
-							<font-awesome-icon v-else-if="g('takenColours').indexOf(colourName) > -1" icon="times"></font-awesome-icon>
+						<div v-for="(hslCode, colourName) in colours" :key="colourName" :style="{ backgroundColor: hslCode }"
+						:class="{ taken: takenColours.indexOf(colourName) > -1 }" @click="setColour(colourName, takenColours.indexOf(colourName) > -1)">
+							<font-awesome-icon v-if="self.colour === colourName" icon="check"></font-awesome-icon>
+							<font-awesome-icon v-else-if="takenColours.indexOf(colourName) > -1" icon="times"></font-awesome-icon>
 						</div>
 					</div>
 				</section>
 				<h1>Players</h1>
 				<section>
 					<div class="player-list">
-						<div v-for="(player, index) in g('playerOrder')" :key="player.id">
+						<div v-for="(player, index) in playerOrder" :key="player.id">
 							<tomika-cards-player-graphic :id="player.id" :small="true" :colour="player.colour"></tomika-cards-player-graphic>
 							<div class="nickname">{{ player.nickname }}</div>
-							<div class="host"><font-awesome-icon v-if="player.id === s.hostId" icon="crown"></font-awesome-icon></div>
-							<div v-if="g('isHost')" class="reorder-buttons">
-								<div v-if="index !== 0" @click="reorderPlayers(g('playerOrder')[index - 1].id, player.id)"><font-awesome-icon icon="chevron-up"></font-awesome-icon></div>
+							<div class="host"><font-awesome-icon v-if="player.id === hostId" icon="crown"></font-awesome-icon></div>
+							<div v-if="isHost" class="reorder-buttons">
+								<div v-if="index !== 0" @click="reorderPlayers(playerOrder[index - 1].id, player.id)"><font-awesome-icon icon="chevron-up"></font-awesome-icon></div>
 								<div class="spacer"></div>
-								<div v-if="index !== g('playerOrder').length - 1" @click="reorderPlayers(player.id, g('playerOrder')[index + 1].id)"><font-awesome-icon icon="chevron-down"></font-awesome-icon></div>
+								<div v-if="index !== playerOrder.length - 1" @click="reorderPlayers(player.id, playerOrder[index + 1].id)"><font-awesome-icon icon="chevron-down"></font-awesome-icon></div>
 							</div>
 						</div>
-						<div v-for="n in 6 - s.playerIdOrder.length" :key="n" class="empty">
+						<div v-for="n in 6 - playerIdOrder.length" :key="n" class="empty">
 							<tomika-cards-player-graphic :small="true" colour="black"></tomika-cards-player-graphic>
 							<div class="nickname">Waiting for players...</div>
 						</div>
@@ -45,7 +41,7 @@
 				</section>
 				<h1>Game options</h1>
 				<section>
-					<div>Total number of cards:<template v-if="!g('isHost')"> {{ s.totalCardCount }}</template></div>
+					<!--<div>Total number of cards:<template v-if="!g('isHost')"> {{ s.totalCardCount }}</template></div>
 					<div class="total-card-count-row" v-if="g('isHost')">
 						<div v-for="n in [32,36,40,44,48,52]" :key="n" :class="{ selected: s.totalCardCount === n, invalid:
 						isInvalidTotalCardCount(n) }" @click="setTotalCardCount(n)">{{ n }}</div>
@@ -58,7 +54,7 @@
 					<div class="buttons-row">
 						<button class="red" @click="leaveGame">Leave game</button>
 						<button class="green" v-if="g('isHost')" @click="startGame">Start game</button>
-					</div>
+					</div>-->
 				</section>
 			</div>
 			<div class="drawer-tab" :style="{ transform: 'rotate(90deg) translate(-32px, ' + (leftDrawerVisible ? '-300px' : '0') + ')' }" @click="leftDrawerVisible = !leftDrawerVisible">
@@ -66,138 +62,46 @@
 				<span>Options / Player list</span>
 			</div>
 		</div>
-		<div class="dark-screen" v-if="!g('inGame')">
-			<div class="game-selector">
-				<transition :name="gameSelectionStep < gameSelectionPrevStep ? 'page-slide-right' : 'page-slide-left'" mode="out-in">
-					<div v-if="gameSelectionStep === -1" key="-1">
-						<h1>Not connected</h1>
-						<div style="text-align: center">Backend may not be available</div>
-					</div>
-					<div v-if="gameSelectionStep === 0" key="0">
-						<h1>Select game</h1>
-						<div class="game-list">
-							<tomika-cards-game-details v-for="game in s.games" :key="game.id" @click.native="selectGame(game)" :game="game" :clickable="true"></tomika-cards-game-details>
-						</div>
-						<div class="create-game-button" @click="gameSelectionChangeStep(1)">
-							<div><font-awesome-icon icon="plus"></font-awesome-icon> Create new game</div>
-						</div>
-					</div>
-					<div v-if="gameSelectionStep === 1" key="1">
-						<tomika-cards-game-details v-if="s.selectedGameId" :game="g('selectedGame')"></tomika-cards-game-details>
-						<h1 v-else>Create new game</h1>
-						<div class="ouistiti-form-row">
-							<div>Nickname</div>
-							<div><input type="text" v-model="chosenNickname" @keyup="createOrJoinSelectedGame($event)"></div>
-						</div>
-						<div class="ouistiti-form-row" v-if="!s.selectedGameId || g('selectedGame').passwordProtected">
-							<div>Password</div>
-							<div><input type="text" :placeholder="s.selectedGameId ? '' : 'Leave blank for no password'" v-model="password" @keyup="createOrJoinSelectedGame($event)"></div>
-						</div>
-						<tomika-block-message v-if="joinGameError" type="error">{{ joinGameError }}</tomika-block-message>
-						<div class="game-selection-confirm">
-							<span class="game-selection-cancel" @click="gameSelectionChangeStep(0)">
-								<font-awesome-icon icon="chevron-left"></font-awesome-icon> Cancel
-							</span>
-							<div class="spacer"></div>
-							<button class="green" @click="createOrJoinSelectedGame">{{ s.selectedGameId ? 'Join' : 'Create' }}!</button>
-						</div>
-					</div>
-				</transition>
-			</div>
+		<div class="dark-screen" v-if="!inGame">
+			<tomika-cards-games-selector></tomika-cards-games-selector>
 		</div>
 	</div>
 </template>
 
 <script>
 	// Import dependencies
-	//import io from 'socket.io-client';
+	import { mapState, mapGetters, mapMutations } from 'vuex';
 	import { library } from '@fortawesome/fontawesome-svg-core';
-	import { faPlus, faLock, faUsers, faCrown, faCheck, faTimes, faChevronUp, faChevronDown, faChevronRight,
-		faChevronLeft } from '@fortawesome/free-solid-svg-icons';
+	import { faCrown, faCheck, faTimes, faChevronUp, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 
 	// Import components
-	import tomikaCardsGameDetails from "./tomika-cards-game-details";
+	import tomikaCardsGamesSelector from './tomika-cards-games-selector';
 	import tomikaBlockMessage from "../tomika-block-message";
 	import tomikaCardsPlayerGraphic from "./tomika-cards-player-graphic";
 	import tomikaPlayingCard from "./tomika-playing-card";
 
 	// Font awesome
-	library.add(faPlus, faLock, faUsers, faCrown, faCheck, faTimes, faChevronUp, faChevronDown, faChevronRight,
-		faChevronLeft);
+	library.add(faCrown, faCheck, faTimes, faChevronUp, faChevronDown);
 
 	export default {
 		name: "tomika-content-cards",
 		components: {
-			tomikaCardsGameDetails,
+			tomikaCardsGamesSelector,
 			tomikaBlockMessage,
 			tomikaCardsPlayerGraphic,
 			tomikaPlayingCard
 		},
-		data() {
-			return {
-				// UI
-				leftDrawerVisible: true,
-
-				// Game selection
-				gameSelectionStep: 0, // -1 = not connected, 0 = game selection, 1 = create game screen, 2 = join game screen
-				gameSelectionPrevStep: 0,
-				chosenNickname: '',
-				retrievedDiscordName: false,
-				password: '',
-				joinGameError: '',
-
-				// Game
-				nicknameError: ''
-			}
-		},
 		computed: {
-			s() { return this.$store.state.cards; }
+			...mapState('cards', ['socket', 'cards', 'hostId', 'playerIdOrder', 'chosenNickname', 'nicknameError', 'leftDrawerVisible', 'colours']),
+			...mapGetters('cards', ['isHost', 'self', 'playerOrder', 'playerCount', 'inGame', 'takenColours'])
 		},
 		methods: {
-			g(type) { return this.$store.getters[`cards/${type}`]; },
-			isInvalidTotalCardCount(n) {
-				let r = true;
-				switch (this.g('playerCount')) {
-					case 4: r = false; break;
-					case 5: if (n === 40) { r = false; } break;
-					case 6: if (n === 48) { r = false; } break;
-				}
-				return r;
-			},
-			gameSelectionChangeStep(step) {
-				if (step === 0) { this.s.selectedGameId = ''; }
-				this.password = '';
-				this.joinGameError = '';
-				this.gameSelectionPrevStep = this.gameSelectionStep;
-				this.gameSelectionStep = step;
-				if (!this.retrievedDiscordName && this.$store.getters['user/connected']) {
-					this.chosenNickname = this.$store.getters['user/name'];
-					this.retrievedDiscordName = true;
-				}
-			},
-			createOrJoinSelectedGame(keyEvent) {
-				if (keyEvent.type === 'keyup' && keyEvent.key !== 'Enter') { return; }
-				if (this.s.selectedGameId) {
-					// Join game
-					this.s.socket.emit('joinGame', { id: this.s.selectedGameId, nickname: this.chosenNickname, password: this.password });
-				} else {
-					// Create game
-					this.s.socket.emit('createGame', {nickname: this.chosenNickname, password: this.password});
-				}
-			},
-			selectGame(game) {
-				if (game.joinable) {
-					this.$store.commit('cards/setSelectedGameId', game.id);
-					this.gameSelectionChangeStep(1);
-				}
-			},
-			setNickname(keyEvent) {
-				if (keyEvent.type === 'keyup' && keyEvent.key !== 'Enter') { return; }
-				this.s.socket.emit('setNickname', { nickname: this.chosenNickname })
-			},
+			...mapMutations('cards', ['setChosenNickname', 'setLeftDrawerVisible']),
+			checkSubmit(keyEvent) { if (keyEvent.key === 'Enter') { this.setNickname(); } },
+			setNickname() { this.socket.emit('setNickname', { nickname: this.chosenNickname }); },
 			setColour(colour, taken) {
 				if (!taken) {
-					this.s.socket.emit('setColour', { colour: colour });
+					this.socket.emit('setColour', { colour: colour });
 				}
 			},
 			reorderPlayers(movingPlayerId, moveAfterPlayerId) {
@@ -205,62 +109,33 @@
 					movingPlayerId: movingPlayerId,
 					moveAfterPlayerId: moveAfterPlayerId,
 				};
-				if (movingPlayerId === this.s.playerIdOrder[0]) { data.newFirstPlayerId = moveAfterPlayerId; }
-				this.s.socket.emit('reorderPlayers', data);
-			},
-			setTotalCardCount(cardCount) {
-				// Only emit an event if the number of players in the lobby is 4, as that's the only time it matters
-				if (this.g('playerCount') === 4) {
-					this.s.socket.emit('setTotalCardCount', { totalCardCount: cardCount });
-				}
+				if (movingPlayerId === this.playerIdOrder[0]) { data.newFirstPlayerId = moveAfterPlayerId; }
+				this.socket.emit('reorderPlayers', data);
 			},
 			leaveGame() {
-				this.s.socket.emit('leaveGame');
+				this.socket.emit('leaveGame');
 			},
 			startGame() {
 				// Check player is host
-				if (this.g('isHost')) {
-					this.s.socket.emit('startGame');
+				if (this.isHost) {
+					this.socket.emit('startGame');
 				}
 			}
 		},
 		mounted() {
 			this.$store.dispatch('cards/connect', {
-
-				// --- Connection related events
-
-				connect: () => { this.gameSelectionChangeStep(0); },
-				connect_error: () => { this.gameSelectionChangeStep(-1); },
-				disconnect: () => { console.log('disconnect'); },
-
-				// --- Game management events
-
-				listGames: (data) => {
-					// Check that the selected game, if there is any, is still available to join
-					if (this.s.selectedGameId) {
-						// Find the game in the new array
-						let game = data.find(e => e.id === this.s.selectedGameId);
-						if (!game || !game.joinable) {
-							this.gameSelectionChangeStep(0);
-						}
-					}
-				},
-				joinGameError: (errorMessage) => { this.joinGameError = errorMessage; },
-				joinGame: () => { this.gameSelectionChangeStep(0); this.s.socket.emit('test'); },
-				setNickname: () => { this.nicknameError = ''; },
-				nicknameError: (errorMessage) => {
-					this.nicknameError = errorMessage;
-					setTimeout(() => { this.nicknameError = ''; }, 10000);
-					this.chosenNickname = this.g('self').nickname;
-				},
 				gameEvent: (actionsArray) => {
 					// Check if there's an event that starts the game
 					if (actionsArray instanceof Array && actionsArray.find(action => action.actionType === 'start')) {
-						this.leftDrawerVisible = false;
+						this.setLeftDrawerVisible(false);
 					}
 				}
-
 			});
+		},
+		destroyed() {
+			// This is to make sure that if the user navigates away from the card game app, but while staying on the
+			// site, that they're not still inadvertently connected
+			this.$store.dispatch('cards/disconnect');
 		}
 	}
 </script>
@@ -537,92 +412,5 @@ h1, h2 {
 	height: 100%;
 	background-color: hsla(0,0%,0%,0.3);
 }
-.game-selector {
-	width: 400px;
-	padding: 20px;
-	background-color: hsla(0,0%,10%,0.8);
-	border-radius: 12px;
-	overflow: hidden;
-}
-.game-selector h1 {
-	margin: 0 0 12px 0;
-	color: hsl(0,0%,80%);
-	text-align: center;
-	font-size: 24px;
-}
-.create-game-button {
-	position: relative;
-	width: 100%;
-	padding: 8px;
-	cursor: pointer;
-	transition: background-color 100ms, color 100ms;
-	font-size: 20px;
-	color: hsl(0,0%,70%);
-}
-.create-game-button div {
-	border: 1px dashed hsl(0,0%,50%);
-	border-radius: 8px;
-	padding: 8px;
-	width: 100%;
-	text-align: center;
-}
-.create-game-button svg {
-	font-size: 0.8em;
-	margin-right: 0.5em;
-}
-.create-game-button:hover {
-	background-color: hsla(0,0%,100%,0.05);
-	border-radius: 8px;
-	color: hsl(0,0%,100%)
-}
-.game-selection-confirm {
-	display: flex;
-	flex-direction: row;
-	margin-top: 8px;
-}
-.spacer {
-	flex-grow: 1;
-}
-.game-selection-cancel {
-	padding: 8px 12px;
-	color: hsl(0,0%,70%);
-	transition: background-color 100ms, color 100ms;
-	cursor: pointer;
-	width: auto;
-	border-radius: 8px;
-}
-.game-selection-cancel:hover {
-	background-color: hsla(0,0%,100%,0.05);
-	color: hsl(0,0%,100%);
-}
-.game-selection-cancel svg {
-	font-size: 0.8em;
-	margin-right: 0.5em;
-}
-.ouistiti-form-row {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	margin-bottom: 4px;
-	font-size: 20px;
-}
-.ouistiti-form-row > div:nth-child(1) {
-	width: 30%;
-	text-align: right;
-	padding: 4px 16px 4px 0;
-}
-.ouistiti-form-row > div:nth-child(2) {
-	flex-grow: 1;
-}
-.ouistiti-form-row input[type=text] {
-	background: transparent;
-	color: inherit;
-	width: 100%;
-	font-size: inherit;
-	padding: 8px;
-}
-.game-list {
-	overflow-y: scroll;
-	max-height: 40vh;
-}
+
 </style>
