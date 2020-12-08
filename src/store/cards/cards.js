@@ -23,7 +23,7 @@ export default {
 		cardGroups: {},
 
 		// Game related properties
-		gameModuleId: 'game-module-generic',
+		gameModuleId: 'game-module-ouistiti',
 		gameModuleData: {},
 		inProgress: false,
 		round: 1,
@@ -86,12 +86,18 @@ export default {
 			// TODO - add sorting function
 			return Object.keys(state.cards).filter(cardId => state.cards[cardId].cardGroupId === cardGroupId).map(cardId => {
 				return { cardId: cardId, ...state.cards[cardId] };
+			}).sort((card1, card2) => {
+				if (card1.value === 'Ace' && card2.value === 'Ace') { return 0; }
+				if (card1.value === 'Ace') { return 1; }
+				if (card2.value === 'Ace') { return -1; }
+				return 0;
 			});
 		},
-		gameModule: (state) => { return gameModules[state.gameModuleId] || {}; }
+		gameModule: (state) => { return gameModules[state.gameModuleId] || { components: {}, actions: {} }; }
 	},
 	mutations: {
 		reset: (state) => {
+			// TODO - complete
 			state.games = [];
 			state.selectedGameId = '';
 			state.selfId = '';
@@ -149,8 +155,8 @@ export default {
 
 		setCard: (state, cardData) => {
 			if (typeof cardData.cardId !== 'string') { return; }
-			let newCardData = state.cards[cardData.cardId] || { cardId: cardData.cardId };
-			['suit', 'value', 'faceUp', 'cardGroupId', 'nextCardId'].forEach(propName => {
+			let newCardData = Object.assign({}, state.cards[cardData.cardId] || { cardId: cardData.cardId });
+			['suit', 'value', 'faceUp', 'cardGroupId', 'nextCardId', 'playable'].forEach(propName => {
 				if (typeof cardData[propName] !== 'undefined') { newCardData[propName] = cardData[propName]; }
 			});
 			Vue.set(state.cards, cardData.cardId, newCardData);
@@ -163,7 +169,7 @@ export default {
 
 		setCardGroup: (state, cardGroupData) => {
 			if (typeof cardGroupData.cardGroupId !== 'string') { return; }
-			let newCardGroupData = state.cardGroups[cardGroupData.cardGroupId] || { cardId: cardGroupData.cardGroupId };
+			let newCardGroupData = Object.assign({}, state.cardGroups[cardGroupData.cardGroupId] || { cardId: cardGroupData.cardGroupId });
 			['role', 'firstCardId', 'playerId'].forEach(propName => {
 				if (typeof cardGroupData[propName] !== 'undefined') { newCardGroupData[propName] = cardGroupData[propName]; }
 			});
@@ -198,123 +204,100 @@ export default {
 		 * Connects to the backend websocket using the cards namespace. This mutation also defines the event handlers.
 		 * Callback functions for each of these events can be passed as a payload
 		 */
-		connect: (store, eventHandlers) => {
-			// Validate payload
-			for (let i in eventHandlers) {
-				if (eventHandlers.hasOwnProperty(i) && typeof eventHandlers[i] !== 'function') { throw 'Invalid event handler for "' + i + '"'; }
-			}
-
+		connect: (context) => {
 			try {
 				// Attempt to establish a connection to the backend
-				// TODO - change to cards namespace
-				store.commit('setSocket', io(`${store.rootState.app.backEnd}/cards`));
+				context.commit('setSocket', io(`${context.rootState.app.backEnd}/cards`));
 
-				// Object of event handlers as defined by this store module, intended for changes in data
-				// The reason we split the two is to avoid clutter in the component
-				const stateEventHandlers = {
+				// --- CONNECTION RELATED EVENTS ---
 
-					// --- CONNECTION RELATED EVENTS ---
+				context.state.socket.on('connect', () => { context.commit('gameSelectionChangeStep', 0); });
+				context.state.socket.on('connect_error', () => { context.commit('gameSelectionChangeStep', -1); });
+				context.state.socket.on('disconnect', () => { context.commit('reset'); });
 
-					connect: () => { store.commit('gameSelectionChangeStep', 0); },
-					connect_error: () => { store.commit('gameSelectionChangeStep', -1); },
-					disconnect: () => { console.log('disconnect'); store.commit('reset'); },
+				// --- GAME SELECTION RELATED EVENTS ---
 
-					// --- GAME SELECTION RELATED EVENTS ---
-
-					listGames: (data) => {
-						// Check that the selected game, if there is any, is still available to join
-						if (store.state.selectedGameId) {
-							// Find the game in the new array
-							let game = data.find(e => e.id === store.state.selectedGameId);
-							if (!game || !game.joinable) {
-								store.commit('gameSelectionChangeStep', 0);
-							}
-						}
-						store.commit('setGames', data);
-					},
-					joinGame: (data) => {
-						store.commit('gameSelectionChangeStep', 0);
-						store.commit('setPlayers', data.players);
-						store.commit('setPlayerIdOrder', data.playerIdOrder);
-						store.commit('setSelfId', data.selfId);
-						store.commit('setHostId', data.hostId);
-					},
-					joinGameError: (errorMessage) => { store.commit('setJoinGameError', errorMessage); },
-					leaveGame: () => {
-						store.commit('reset');
-						store.state.socket.emit('listGames');
-					},
-					addPlayer: (data) => {
-						store.commit('addPlayer', data.player);
-						store.commit('setPlayerIdOrder', data.playerIdOrder);
-					},
-					removePlayer: (data) => {
-						store.commit('removePlayer', data.id);
-						store.commit('setPlayerIdOrder', data.playerIdOrder);
-						store.commit('setHostId', data.hostId);
-					},
-					setNickname: ({ id, newNickname }) => {
-						store.commit('setNicknameError', '');
-						store.commit('setNickname', { playerId: id, newNickname: newNickname });
-					},
-					nicknameError: (errorMessage) => {
-						store.commit('setNicknameError', errorMessage);
-						setTimeout(() => { store.commit('setNicknameError', ''); }, 10000);
-						store.commit('setChosenNickname', store.getters.self.nickname);
-					},
-					setColour: ({ id, newColour }) => { store.commit('setColour', { playerId: id, newColour: newColour }); },
-					reorderPlayers: ({ playerIdOrder }) => { store.commit('setPlayerIdOrder', playerIdOrder); },
-					setGameModule: ({ gameModuleId }) => { store.commit('setGameModuleId', gameModuleId); },
-
-					/**
-					 * The game event is the event received when the server is communicating changes in the flow of the
-					 * specific game chosen. The data received is an array of actions. Each action is an object with a
-					 * property called "actionType" which determines what must be done to fulfill the changes that the
-					 * server communicated. These are some of the generic action types:
-					 *  - card: Updates the information of a specific card
-					 * @param actionsArray The array of objects holding the actions to be performed
-					 */
-					gameEvent: async (actionsArray) => {
-						// Validate the parameter
-						if (!(actionsArray instanceof Array)) { return; }
-						// Cycle through each action
-						for (let action of actionsArray) {
-							switch (action.actionType) {
-								case 'start':
-									store.commit('setInProgress', true);
-									break;
-								case 'cardGroup':
-									store.commit('setCardGroup', action);
-									break;
-								case 'card':
-									store.commit('setCard', action);
-									break;
-								default:
-									// Any action not listed here will be a module specific action
-									if (typeof action.actionType === 'string' && action.actionType.length > 0 &&
-										typeof store.state.gameModule[action.actionType] === 'function') {
-										await store.state.gameModule[action.actionType](store, action);
-									}
-									break;
-							}
-							// Check whether or not to delay the next action
-							if (action.delayNextAction) { await wait(100); }
+				context.state.socket.on('listGames', (data) => {
+					// Check that the selected game, if there is any, is still available to join
+					if (context.state.selectedGameId) {
+						// Find the game in the new array
+						let game = data.find(e => e.id === context.state.selectedGameId);
+						if (!game || !game.joinable) {
+							context.commit('gameSelectionChangeStep', 0);
 						}
 					}
-				};
+					context.commit('setGames', data);
+				});
+				context.state.socket.on('joinGame', (data) => {
+					context.commit('gameSelectionChangeStep', 0);
+					context.commit('setPlayers', data.players);
+					context.commit('setPlayerIdOrder', data.playerIdOrder);
+					context.commit('setSelfId', data.selfId);
+					context.commit('setHostId', data.hostId);
+				});
+				context.state.socket.on('joinGameError', (errorMessage) => { context.commit('setJoinGameError', errorMessage); });
+				context.state.socket.on('leaveGame', () => {
+					context.commit('reset');
+					context.state.socket.emit('listGames');
+				});
+				context.state.socket.on('addPlayer', (data) => {
+					context.commit('addPlayer', data.player);
+					context.commit('setPlayerIdOrder', data.playerIdOrder);
+				});
+				context.state.socket.on('removePlayer', (data) => {
+					context.commit('removePlayer', data.id);
+					context.commit('setPlayerIdOrder', data.playerIdOrder);
+					context.commit('setHostId', data.hostId);
+				});
+				context.state.socket.on('setNickname', ({ id, newNickname }) => {
+					context.commit('setNicknameError', '');
+					context.commit('setNickname', { playerId: id, newNickname: newNickname });
+				});
+				context.state.socket.on('nicknameError', (errorMessage) => {
+					context.commit('setNicknameError', errorMessage);
+					setTimeout(() => { context.commit('setNicknameError', ''); }, 10000);
+					context.commit('setChosenNickname', context.getters.self.nickname);
+				});
+				context.state.socket.on('setColour', ({ id, newColour }) => { context.commit('setColour', { playerId: id, newColour: newColour }); });
+				context.state.socket.on('reorderPlayers', ({ playerIdOrder }) => { context.commit('setPlayerIdOrder', playerIdOrder); });
+				context.state.socket.on('setGameModule', ({ gameModuleId }) => { context.commit('setGameModuleId', gameModuleId); });
 
-				// Merge the two object (both the one defined in this action and the one defined by the vue component
-				for (let event of Object.keys({...stateEventHandlers, ...eventHandlers})) {
-					let f = () => {};
-					if (!stateEventHandlers.hasOwnProperty(event) && eventHandlers.hasOwnProperty(event)) { f = eventHandlers[event]; }
-					else if (stateEventHandlers.hasOwnProperty(event) && !eventHandlers.hasOwnProperty(event)) { f = stateEventHandlers[event]; }
-					else if (stateEventHandlers.hasOwnProperty(event) && eventHandlers.hasOwnProperty(event)) { f = (data) => {
-						// The event handler defined by the component always comes first as it may be trying to adjust before the data is changed
-						eventHandlers[event](data);
-						stateEventHandlers[event](data);
-					}; }
-					store.state.socket.on(event, f);
-				}
+				/**
+				 * The game event is the event received when the server is communicating changes in the flow of the
+				 * specific game chosen. The data received is an array of actions. Each action is an object with a
+				 * property called "actionType" which determines what must be done to fulfill the changes that the
+				 * server communicated. These are some of the generic action types:
+				 *  - card: Updates the information of a specific card
+				 * @param actionsArray The array of objects holding the actions to be performed
+				 */
+				context.state.socket.on('gameEvent', async (actionsArray) => {
+					// Validate the parameter
+					if (!(actionsArray instanceof Array)) { return; }
+					// Cycle through each action
+					for (let action of actionsArray) {
+						switch (action.actionType) {
+							case 'start':
+								context.commit('setInProgress', true);
+								context.commit('setLeftDrawerVisible', false);
+								break;
+							case 'cardGroup':
+								context.commit('setCardGroup', action);
+								break;
+							case 'card':
+								context.commit('setCard', action);
+								break;
+							default:
+								// Any action not listed here will be a module specific action
+								if (typeof action.actionType === 'string' && action.actionType.length > 0 &&
+									typeof context.state.gameModule.actions[action.actionType] === 'function') {
+									await context.state.gameModule.actions[action.actionType](context, action);
+								}
+								break;
+						}
+						// Check whether or not to delay the next action
+						if (action.delayNextAction) { await wait(100); }
+					}
+				});
 
 			} catch (err) {
 				// Nothing to do here

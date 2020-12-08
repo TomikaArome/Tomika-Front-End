@@ -50,21 +50,19 @@
 					<div class="available-cards-row">
 						<div v-for="i in ['A','K','Q','J','10','9','8','7','6','5','4','3','2'].slice(0, Math.floor(s.totalCardCount / 4))" :key="i">{{ i }}</div>
 					</div>
-					<div>Total number of rounds: {{ s.totalRoundCount }}</div>
+					<div>Total number of rounds: {{ s.totalRoundCount }}</div>-->
 					<div class="buttons-row">
 						<button class="red" @click="leaveGame">Leave game</button>
-						<button class="green" v-if="g('isHost')" @click="startGame">Start game</button>
-					</div>-->
+						<button class="green" v-if="isHost" @click="startGame">Start game</button>
+					</div>
 				</section>
 			</div>
-			<div class="drawer-tab" :style="{ transform: 'rotate(90deg) translate(-32px, ' + (leftDrawerVisible ? '-300px' : '0') + ')' }" @click="leftDrawerVisible = !leftDrawerVisible">
+			<div class="drawer-tab" :style="{ transform: 'rotate(90deg) translate(-32px, ' + (leftDrawerVisible ? '-300px' : '0') + ')' }" @click="setLeftDrawerVisible(!leftDrawerVisible)">
 				<font-awesome-icon :icon="leftDrawerVisible ? 'chevron-down' : 'chevron-up'"></font-awesome-icon>
 				<span>Options / Player list</span>
 			</div>
 		</div>
-		<div class="dark-screen" v-if="!inGame">
-			<tomika-cards-games-selector></tomika-cards-games-selector>
-		</div>
+		<tomika-cards-games-selector v-if="!inGame"></tomika-cards-games-selector>
 	</div>
 </template>
 
@@ -92,7 +90,8 @@
 			tomikaPlayingCard
 		},
 		computed: {
-			...mapState('cards', ['socket', 'cards', 'hostId', 'playerIdOrder', 'chosenNickname', 'nicknameError', 'leftDrawerVisible', 'colours']),
+			...mapState('cards', ['socket', 'cards', 'hostId', 'playerIdOrder', 'chosenNickname', 'nicknameError',
+				'leftDrawerVisible', 'colours']),
 			...mapGetters('cards', ['isHost', 'self', 'playerOrder', 'playerCount', 'inGame', 'takenColours'])
 		},
 		methods: {
@@ -123,14 +122,7 @@
 			}
 		},
 		mounted() {
-			this.$store.dispatch('cards/connect', {
-				gameEvent: (actionsArray) => {
-					// Check if there's an event that starts the game
-					if (actionsArray instanceof Array && actionsArray.find(action => action.actionType === 'start')) {
-						this.setLeftDrawerVisible(false);
-					}
-				}
-			});
+			this.$store.dispatch('cards/connect');
 		},
 		destroyed() {
 			// This is to make sure that if the user navigates away from the card game app, but while staying on the
@@ -394,23 +386,7 @@ h1, h2 {
 
 .playing-area {
 	height: 100%;
-	width: 500px;
-}
-
-/*----------------*
- | Game selection |
- *----------------*/
-
-.dark-screen {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	position: absolute;
-	top: 0;
-	left: 0;
 	width: 100%;
-	height: 100%;
-	background-color: hsla(0,0%,0%,0.3);
 }
 
 </style>

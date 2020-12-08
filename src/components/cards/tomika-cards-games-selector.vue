@@ -1,42 +1,44 @@
 <template>
-	<div class="game-selector">
-		<transition :name="gameSelectionStep < gameSelectionPrevStep ? 'page-slide-right' : 'page-slide-left'" mode="out-in">
-			<div v-if="gameSelectionStep === -1" :key="-1">
-				<h1>Not connected</h1>
-				<div style="text-align: center">Backend may not be available</div>
-			</div>
-			<div v-if="gameSelectionStep === 0" :key="0">
-				<h1>Select game</h1>
-				<div class="game-list">
-					<tomika-cards-game-details v-for="game in games" :key="game.id" @click.native="selectGame(game)" :game="game" :clickable="true"></tomika-cards-game-details>
+	<div class="tomika-cards-games-selector">
+		<div class="game-selector">
+			<transition :name="gameSelectionStep < gameSelectionPrevStep ? 'page-slide-right' : 'page-slide-left'" mode="out-in">
+				<div v-if="gameSelectionStep === -1" :key="-1">
+					<h1>Not connected</h1>
+					<div style="text-align: center">Backend may not be available</div>
 				</div>
-				<div class="create-game-button" @click="$store.commit('cards/gameSelectionChangeStep', 1)">
-					<div><font-awesome-icon icon="plus"></font-awesome-icon> Create new game</div>
+				<div v-if="gameSelectionStep === 0" :key="0">
+					<h1>Select game</h1>
+					<div class="game-list">
+						<tomika-cards-game-details v-for="game in games" :key="game.id" @click.native="selectGame(game)" :game="game" :clickable="true"></tomika-cards-game-details>
+					</div>
+					<div class="create-game-button" @click="$store.commit('cards/gameSelectionChangeStep', 1)">
+						<div><font-awesome-icon icon="plus"></font-awesome-icon> Create new game</div>
+					</div>
 				</div>
-			</div>
-			<div v-if="gameSelectionStep === 1" :key="1">
-				<tomika-cards-game-details v-if="selectedGameId" :game="selectedGame"></tomika-cards-game-details>
-				<h1 v-else>Create new game</h1>
-				<div class="ouistiti-form-row">
-					<div>Nickname</div>
-					<div><input type="text" :value="chosenNickname" @input="setChosenNickname($event.target.value)"
-						@keydown="checkSubmit($event)"></div>
+				<div v-if="gameSelectionStep === 1" :key="1">
+					<tomika-cards-game-details v-if="selectedGameId" :game="selectedGame"></tomika-cards-game-details>
+					<h1 v-else>Create new game</h1>
+					<div class="cards-form-row">
+						<div>Nickname</div>
+						<div><input type="text" :value="chosenNickname" @input="setChosenNickname($event.target.value)"
+							@keydown="checkSubmit($event)"></div>
+					</div>
+					<div class="cards-form-row" v-if="!selectedGame || selectedGame.passwordProtected">
+						<div>Password</div>
+						<div><input type="text" :placeholder="selectedGameId ? '' : 'Leave blank for no password'"
+							:value="password" @input="setPassword($event.target.value)" @keydown="checkSubmit($event)"></div>
+					</div>
+					<tomika-block-message v-if="joinGameError" type="error">{{ joinGameError }}</tomika-block-message>
+					<div class="game-selection-confirm">
+								<span class="game-selection-cancel" @click="$store.commit('cards/gameSelectionChangeStep', 0)">
+									<font-awesome-icon icon="chevron-left"></font-awesome-icon> Cancel
+								</span>
+						<div></div>
+						<button class="green" @click="createOrJoinSelectedGame">{{ selectedGameId ? 'Join' : 'Create' }}!</button>
+					</div>
 				</div>
-				<div class="ouistiti-form-row" v-if="!selectedGame || selectedGame.passwordProtected">
-					<div>Password</div>
-					<div><input type="text" :placeholder="selectedGameId ? '' : 'Leave blank for no password'"
-						:value="password" @input="setPassword($event.target.value)" @keydown="checkSubmit($event)"></div>
-				</div>
-				<tomika-block-message v-if="joinGameError" type="error">{{ joinGameError }}</tomika-block-message>
-				<div class="game-selection-confirm">
-							<span class="game-selection-cancel" @click="$store.commit('cards/gameSelectionChangeStep', 0)">
-								<font-awesome-icon icon="chevron-left"></font-awesome-icon> Cancel
-							</span>
-					<div class="spacer"></div>
-					<button class="green" @click="createOrJoinSelectedGame">{{ selectedGameId ? 'Join' : 'Create' }}!</button>
-				</div>
-			</div>
-		</transition>
+			</transition>
+		</div>
 	</div>
 </template>
 
@@ -107,6 +109,16 @@ h1, h2 {
 	font-family: "Roboto Condensed", Arial, sans-serif;
 	margin: 0;
 }
+.tomika-cards-games-selector {
+	display: grid;
+	place-items: center;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: hsla(0, 0%, 0%, 0.3);
+}
 .game-selector {
 	width: 400px;
 	padding: 20px;
@@ -146,19 +158,15 @@ h1, h2 {
 	color: hsl(0,0%,100%)
 }
 .game-selection-confirm {
-	display: flex;
-	flex-direction: row;
+	display: grid;
+	grid-template-columns: auto 1fr auto;
 	margin-top: 8px;
-}
-.spacer {
-	flex-grow: 1;
 }
 .game-selection-cancel {
 	padding: 8px 12px;
 	color: hsl(0,0%,70%);
 	transition: background-color 100ms, color 100ms;
 	cursor: pointer;
-	width: auto;
 	border-radius: 8px;
 }
 .game-selection-cancel:hover {
@@ -169,22 +177,22 @@ h1, h2 {
 	font-size: 0.8em;
 	margin-right: 0.5em;
 }
-.ouistiti-form-row {
+.cards-form-row {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	margin-bottom: 4px;
 	font-size: 20px;
 }
-.ouistiti-form-row > div:nth-child(1) {
+.cards-form-row > div:nth-child(1) {
 	width: 30%;
 	text-align: right;
 	padding: 4px 16px 4px 0;
 }
-.ouistiti-form-row > div:nth-child(2) {
+.cards-form-row > div:nth-child(2) {
 	flex-grow: 1;
 }
-.ouistiti-form-row input[type=text] {
+.cards-form-row input[type=text] {
 	background: transparent;
 	color: inherit;
 	width: 100%;
