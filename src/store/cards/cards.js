@@ -84,12 +84,28 @@ export default {
 		},
 		cardGroupCards: (state) => (cardGroupId) => {
 			// TODO - add sorting function
-			return Object.keys(state.cards).filter(cardId => state.cards[cardId].cardGroupId === cardGroupId).map(cardId => {
+			const cardGroup = state.cardGroups[cardGroupId];
+			if (!cardGroup) { return []; }
+			// Case in which the card group is ordered: we simply have to map the cardIdOrder
+			if (cardGroup.ordered) {
+				return cardGroup.cardIdOrder.filter(cardId => {
+					// Filter to check the card exists
+					return state.cards[cardId];
+				}).map(cardId => {
+					// Map to retrieve all the data about the card
+					return { cardId: cardId, ...state.cards[cardId] };
+				});
+			}
+			// Otherwise we filter the cards array
+			return Object.keys(state.cards).filter(cardId => {
+				// Filter to check the card exists and is part of the card group
+				return state.cards[cardId] && state.cards[cardId].cardGroupId === cardGroupId;
+			}).map(cardId => {
+				// Map to retrieve all the data about the card
 				return { cardId: cardId, ...state.cards[cardId] };
-			}).sort((card1, card2) => {
-				if (card1.value === 'Ace' && card2.value === 'Ace') { return 0; }
-				if (card1.value === 'Ace') { return 1; }
-				if (card2.value === 'Ace') { return -1; }
+			}).sort((/*card1, card2*/) => {
+				// This sort function is used to sort by player preferences, such as order of cards in hand for example
+				// This ordering should have no consequence on the gameplay, an ordered card group is used for that
 				return 0;
 			});
 		},
@@ -156,8 +172,10 @@ export default {
 		setCard: (state, cardData) => {
 			if (typeof cardData.cardId !== 'string') { return; }
 			let newCardData = Object.assign({}, state.cards[cardData.cardId] || { cardId: cardData.cardId });
-			['suit', 'value', 'faceUp', 'cardGroupId', 'nextCardId', 'playable'].forEach(propName => {
-				if (typeof cardData[propName] !== 'undefined') { newCardData[propName] = cardData[propName]; }
+			['suit', 'value', 'faceUp', 'cardGroupId', 'playable'].forEach(propName => {
+				if (typeof cardData[propName] !== 'undefined') {
+					newCardData[propName] = cardData[propName];
+				}
 			});
 			Vue.set(state.cards, cardData.cardId, newCardData);
 		},
@@ -170,7 +188,7 @@ export default {
 		setCardGroup: (state, cardGroupData) => {
 			if (typeof cardGroupData.cardGroupId !== 'string') { return; }
 			let newCardGroupData = Object.assign({}, state.cardGroups[cardGroupData.cardGroupId] || { cardId: cardGroupData.cardGroupId });
-			['role', 'firstCardId', 'playerId'].forEach(propName => {
+			['role', 'playerId', 'ordered', 'cardIdOrder'].forEach(propName => {
 				if (typeof cardGroupData[propName] !== 'undefined') { newCardGroupData[propName] = cardGroupData[propName]; }
 			});
 			Vue.set(state.cardGroups, cardGroupData.cardGroupId, newCardGroupData);
@@ -274,6 +292,7 @@ export default {
 					// Validate the parameter
 					if (!(actionsArray instanceof Array)) { return; }
 					// Cycle through each action
+					console.log(actionsArray);
 					for (let action of actionsArray) {
 						switch (action.actionType) {
 							case 'start':
@@ -285,6 +304,17 @@ export default {
 								break;
 							case 'card':
 								context.commit('setCard', action);
+								for (let cardGroupId of Object.keys(action.cardGroupCardIdOrder || {})) {
+									context.commit('setCardGroup', {
+										cardGroupId: cardGroupId,
+										cardIdOrder: action.cardGroupCardIdOrder[cardGroupId]
+									});
+								}
+								break;
+							case 'playableCards':
+								for (let cardId of Object.keys(context.state.cards)) {
+									context.commit('setCard', { cardId: cardId, playable: action.playableCards.indexOf(cardId) > -1 });
+								}
 								break;
 							default:
 								// Any action not listed here will be a module specific action

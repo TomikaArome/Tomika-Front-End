@@ -95,6 +95,10 @@
 					}
 				}
 
+				else if (this.cardGroup.role === 'play') {
+					console.log(z);
+				}
+
 				// --- RETURN ---
 
 				return { x: x, y: y, z: z, r: r, scale: scale };
