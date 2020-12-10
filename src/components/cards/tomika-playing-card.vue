@@ -57,49 +57,59 @@
 				const selfIndex = this.playerIdOrder.indexOf(this.selfId);
 				return (ownerIndex + (this.playerIdOrder.length - selfIndex)) % this.playerIdOrder.length;
 			},
+			playerAngle() {
+				if (!this.cardGroup.playerId || this.cardGroup.playerId === this.selfId) { return -(Math.PI / 2); }
+				return this.playerCount === 2 ? (Math.PI / 2) : (Math.PI - (Math.PI * ((this.relativePlayerIndex - 1) / (this.playerCount - 2))));
+			},
 			pos() {
 				// Define the values to return
 				let x = 0, y = 0, z = this.cardIndex, r = 0, scale = 1;
 				// Half the size of the screen
 				const halfScreenWidth = this.$store.state.app.appWidth / 2;
 				const halfScreenHeight = this.$store.state.app.appHeight / 2;
+				scale = Math.max(Math.min(halfScreenWidth / halfScreenHeight, 1), 0.7);
 				// Padding on each side of the screen, so the cards aren't glued to the edge of the screen
 				const padding = 20;
 				// The percentage through the hand that this card is (0 is first card, 1 is last card)
-				const percentOfHand = this.cardGroupLength > 1 ? this.cardIndex / (this.cardGroupLength - 1) : 1;
+				const percentOfCardGroup = this.cardGroupLength > 1 ? this.cardIndex / (this.cardGroupLength - 1) : 1;
 
-				// --- IN PLAYER'S HAND ---
+				// Get layout
+				const layout = this.gameModule.cardGroupLayouts && this.gameModule.cardGroupLayouts[this.cardGroup.role] ? this.gameModule.cardGroupLayouts[this.cardGroup.role] : 'center';
 
-				if (this.cardGroup.role === 'hand' && this.cardGroup.playerId) {
+				switch (layout) {
+
+				// Layout where the cards are distributed either in an ark in at the bottom of the screen, or at an angle around the table
+				case 'hand':
 					// Self player's hand
-					if (this.cardGroup.playerId === this.selfId) {
+					if (!this.cardGroup.playerId || this.cardGroup.playerId === this.selfId) {
 						scale = Math.max(Math.min(halfScreenWidth / halfScreenHeight, 1.2), 0.9);
 						const handAngle = this.cardGroupLength >= 8 ? (Math.PI / 4) : (Math.PI / 4 / 8 * this.cardGroupLength);
 						const handRadius = cardHeight * scale * (halfScreenWidth < 400 ? 3 : 5);
-						r = -((handAngle / 2) - (percentOfHand * handAngle));
-						const cardAngle = Math.PI / 2 - (handAngle / 2) + (percentOfHand * handAngle);
+						r = -((handAngle / 2) - (percentOfCardGroup * handAngle));
+						const cardAngle = Math.PI / 2 - (handAngle / 2) + (percentOfCardGroup * handAngle);
 						x = -Math.cos(cardAngle) * handRadius;
 						y = halfScreenHeight + (1 - Math.sin(Math.PI / (halfScreenWidth < 400 ? 8 : 12))) * (handRadius) - Math.sin(cardAngle) * handRadius;
 					} else {
-						scale = Math.max(Math.min(halfScreenWidth / halfScreenHeight, 1), 0.7);
-						const opponentAngle = this.playerCount === 2 ?
-							(Math.PI / 2) :
-							(Math.PI - (Math.PI * ((this.relativePlayerIndex - 1) / (this.playerCount - 2))));
-						r = -opponentAngle - Math.PI / 2;
-						const cosX = Math.cos(opponentAngle) * (halfScreenWidth - cardHeight / 2 * scale - padding);
-						const cosY = -Math.sin(opponentAngle) * (halfScreenHeight - cardHeight / 2 * scale - padding);
-						const d = -((percentOfHand * Math.min(this.cardGroupLength, 8) - (Math.min(this.cardGroupLength, 8) / 2)) * (cardWidth / (halfScreenWidth < 400 ? 6 : 4)));
-						const m = Math.tan(opponentAngle + Math.PI / 2);
+						r = -this.playerAngle - Math.PI / 2;
+						const cosX = Math.cos(this.playerAngle) * (halfScreenWidth - cardHeight / 2 * scale - padding);
+						const cosY = -Math.sin(this.playerAngle) * (halfScreenHeight - cardHeight / 2 * scale - padding);
+						const d = -((percentOfCardGroup * Math.min(this.cardGroupLength, 8) - (Math.min(this.cardGroupLength, 8) / 2)) * (cardWidth / (halfScreenWidth < 400 ? 6 : 4)));
+						const m = Math.tan(this.playerAngle + Math.PI / 2);
 						x = cosX + (1 / Math.sqrt(1 + Math.pow(m, 2))) * d;
 						y = cosY - (m / Math.sqrt(1 + Math.pow(m, 2))) * d;
 					}
-				}
+					break;
 
-				else if (this.cardGroup.role === 'play') {
-					console.log(z);
-				}
+				// Layout where the cards are at an angle corresponding to the player who played the card, i.e. the "chosen card"
+				case 'choice':
+					r = -this.playerAngle - Math.PI / 2;
+					x = Math.cos(this.playerAngle) * (cardHeight / 2);
+					y = -Math.sin(this.playerAngle) * (cardHeight / 2);
+					// The following z index makes sure that the card is relative to the order the player is playing in
+					z = this.cardIndex * this.playerCount + this.playerIdOrder.indexOf(this.cardGroup.playerId);
+					break;
 
-				// --- RETURN ---
+				}
 
 				return { x: x, y: y, z: z, r: r, scale: scale };
 			},

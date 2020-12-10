@@ -292,7 +292,6 @@ export default {
 					// Validate the parameter
 					if (!(actionsArray instanceof Array)) { return; }
 					// Cycle through each action
-					console.log(actionsArray);
 					for (let action of actionsArray) {
 						switch (action.actionType) {
 							case 'start':

@@ -1,4 +1,8 @@
 export default {
+	cardGroupLayouts: {
+		hand: 'hand',
+		play: 'choice'
+	},
 	clickCard: (store, card) => {
 		store.state.cards.socket.emit('gameEvent', { gameEventType: 'playCard', cardId: card.cardId });
 	},
