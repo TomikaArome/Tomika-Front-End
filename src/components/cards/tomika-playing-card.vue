@@ -1,6 +1,6 @@
 <template>
 	<transition name="scale-card" tag="span">
-		<div class="playing-card" :style="style" :class="{ playable: card.playable }" @click="clickCard">
+		<div class="playing-card" :style="style" :class="{ playable: !actionsQueueInProgress && card.playable }" @click="clickCard">
 			<div class="animation">
 				<div class="inner" :style="{ backgroundPosition: valuePositions }" :class="{ faceDown: !card.faceUp }"></div>
 			</div>
@@ -27,7 +27,7 @@
 			}
 		},
 		computed: {
-			...mapState('cards', ['cardGroups', 'selfId', 'playerIdOrder']),
+			...mapState('cards', ['cardGroups', 'selfId', 'playerIdOrder', 'actionsQueueInProgress']),
 			...mapGetters('cards', ['cardGroupCards', 'playerCount', 'gameModule']),
 			style() {
 				return {
@@ -109,6 +109,11 @@
 					z = this.cardIndex * this.playerCount + this.playerIdOrder.indexOf(this.cardGroup.playerId);
 					break;
 
+				case 'temp':
+					x = -halfScreenWidth + 3 * (cardWidth / 4);
+					y = halfScreenHeight - (cardHeight / 2) - (cardWidth / 4);
+					break;
+
 				}
 
 				return { x: x, y: y, z: z, r: r, scale: scale };
@@ -127,7 +132,7 @@
 		},
 		methods: {
 			clickCard() {
-				if (typeof this.gameModule.clickCard === 'function' && this.card.playable) {
+				if (!this.actionsQueueInProgress && typeof this.gameModule.clickCard === 'function' && this.card.playable) {
 					this.gameModule.clickCard(this.$store, this.card);
 				}
 			}
@@ -144,7 +149,6 @@
 	transition: transform 250ms;
 }
 .playable {
-	animation: flash-card 3s infinite;
 	cursor: pointer;
 }
 .animation {
@@ -190,10 +194,5 @@
 @keyframes scale-card-down {
 	0% { transform: scale(1); }
 	100% { transform: scale(0); }
-}
-@keyframes flash-card {
-	0% { filter: none; }
-	50% { filter: brightness(150%); }
-	100% { filter: none; }
 }
 </style>

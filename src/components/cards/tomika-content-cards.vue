@@ -1,7 +1,7 @@
 <template>
 	<div id="tomika-content-ouistiti">
 		<div class="game">
-			<div class="playing-area">
+			<div class="playing-area" @click="clickPlayingArea">
 				<tomika-playing-card v-for="card in cards" :key="card.cardId" :card="card"></tomika-playing-card>
 			</div>
 			<div class="drawer left-drawer" :style="{ transform: 'translateX(' + (leftDrawerVisible ? '0' : '-300px') + ')' }">
@@ -95,7 +95,7 @@
 			...mapGetters('cards', ['isHost', 'self', 'playerOrder', 'playerCount', 'inGame', 'takenColours'])
 		},
 		methods: {
-			...mapMutations('cards', ['setChosenNickname', 'setLeftDrawerVisible']),
+			...mapMutations('cards', ['setChosenNickname', 'setLeftDrawerVisible', 'setActionsQueueSkip']),
 			checkSubmit(keyEvent) { if (keyEvent.key === 'Enter') { this.setNickname(); } },
 			setNickname() { this.socket.emit('setNickname', { nickname: this.chosenNickname }); },
 			setColour(colour, taken) {
@@ -119,6 +119,9 @@
 				if (this.isHost) {
 					this.socket.emit('startGame');
 				}
+			},
+			clickPlayingArea() {
+				if (this.actionsQueueInProgress) { this.setActionsQueueSkip(true); }
 			}
 		},
 		mounted() {

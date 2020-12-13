@@ -28,6 +28,9 @@ export default {
 		inProgress: false,
 		round: 1,
 		phase: 'playing',
+		actionsQueue: [],
+		actionsQueueInProgress: false,
+		actionsQueueSkip: false,
 
 		// Player related properties
 		selfId: '',
@@ -149,6 +152,14 @@ export default {
 				}
 			}
 		},
+		addToActionsQueue: (state, newActionsArray) => {
+			// Validate the parameter
+			if (!(newActionsArray instanceof Array)) { return; }
+			state.actionsQueue.push(...newActionsArray);
+		},
+		shiftActionsQueue: (state) => { state.actionsQueue.shift(); },
+		setActionsQueueInProgress: (state, inProgress) => { state.actionsQueueInProgress = !!inProgress; },
+		setActionsQueueSkip: (state, skip) => { state.actionsQueueSkip = !!skip; },
 
 		// --- PLAYER RELATED MUTATIONS ---
 
@@ -222,63 +233,63 @@ export default {
 		 * Connects to the backend websocket using the cards namespace. This mutation also defines the event handlers.
 		 * Callback functions for each of these events can be passed as a payload
 		 */
-		connect: (context) => {
+		connect: ({ state, rootState, getters, commit, dispatch }) => {
 			try {
 				// Attempt to establish a connection to the backend
-				context.commit('setSocket', io(`${context.rootState.app.backEnd}/cards`));
+				commit('setSocket', io(`${rootState.app.backEnd}/cards`));
 
 				// --- CONNECTION RELATED EVENTS ---
 
-				context.state.socket.on('connect', () => { context.commit('gameSelectionChangeStep', 0); });
-				context.state.socket.on('connect_error', () => { context.commit('gameSelectionChangeStep', -1); });
-				context.state.socket.on('disconnect', () => { context.commit('reset'); });
+				state.socket.on('connect', () => { commit('gameSelectionChangeStep', 0); });
+				state.socket.on('connect_error', () => { commit('gameSelectionChangeStep', -1); });
+				state.socket.on('disconnect', () => { commit('reset'); });
 
 				// --- GAME SELECTION RELATED EVENTS ---
 
-				context.state.socket.on('listGames', (data) => {
+				state.socket.on('listGames', (data) => {
 					// Check that the selected game, if there is any, is still available to join
-					if (context.state.selectedGameId) {
+					if (state.selectedGameId) {
 						// Find the game in the new array
-						let game = data.find(e => e.id === context.state.selectedGameId);
+						let game = data.find(e => e.id === state.selectedGameId);
 						if (!game || !game.joinable) {
-							context.commit('gameSelectionChangeStep', 0);
+							commit('gameSelectionChangeStep', 0);
 						}
 					}
-					context.commit('setGames', data);
+					commit('setGames', data);
 				});
-				context.state.socket.on('joinGame', (data) => {
-					context.commit('gameSelectionChangeStep', 0);
-					context.commit('setPlayers', data.players);
-					context.commit('setPlayerIdOrder', data.playerIdOrder);
-					context.commit('setSelfId', data.selfId);
-					context.commit('setHostId', data.hostId);
+				state.socket.on('joinGame', (data) => {
+					commit('gameSelectionChangeStep', 0);
+					commit('setPlayers', data.players);
+					commit('setPlayerIdOrder', data.playerIdOrder);
+					commit('setSelfId', data.selfId);
+					commit('setHostId', data.hostId);
 				});
-				context.state.socket.on('joinGameError', (errorMessage) => { context.commit('setJoinGameError', errorMessage); });
-				context.state.socket.on('leaveGame', () => {
-					context.commit('reset');
-					context.state.socket.emit('listGames');
+				state.socket.on('joinGameError', (errorMessage) => { commit('setJoinGameError', errorMessage); });
+				state.socket.on('leaveGame', () => {
+					commit('reset');
+					state.socket.emit('listGames');
 				});
-				context.state.socket.on('addPlayer', (data) => {
-					context.commit('addPlayer', data.player);
-					context.commit('setPlayerIdOrder', data.playerIdOrder);
+				state.socket.on('addPlayer', (data) => {
+					commit('addPlayer', data.player);
+					commit('setPlayerIdOrder', data.playerIdOrder);
 				});
-				context.state.socket.on('removePlayer', (data) => {
-					context.commit('removePlayer', data.id);
-					context.commit('setPlayerIdOrder', data.playerIdOrder);
-					context.commit('setHostId', data.hostId);
+				state.socket.on('removePlayer', (data) => {
+					commit('removePlayer', data.id);
+					commit('setPlayerIdOrder', data.playerIdOrder);
+					commit('setHostId', data.hostId);
 				});
-				context.state.socket.on('setNickname', ({ id, newNickname }) => {
-					context.commit('setNicknameError', '');
-					context.commit('setNickname', { playerId: id, newNickname: newNickname });
+				state.socket.on('setNickname', ({ id, newNickname }) => {
+					commit('setNicknameError', '');
+					commit('setNickname', { playerId: id, newNickname: newNickname });
 				});
-				context.state.socket.on('nicknameError', (errorMessage) => {
-					context.commit('setNicknameError', errorMessage);
-					setTimeout(() => { context.commit('setNicknameError', ''); }, 10000);
-					context.commit('setChosenNickname', context.getters.self.nickname);
+				state.socket.on('nicknameError', (errorMessage) => {
+					commit('setNicknameError', errorMessage);
+					setTimeout(() => { commit('setNicknameError', ''); }, 10000);
+					commit('setChosenNickname', getters.self.nickname);
 				});
-				context.state.socket.on('setColour', ({ id, newColour }) => { context.commit('setColour', { playerId: id, newColour: newColour }); });
-				context.state.socket.on('reorderPlayers', ({ playerIdOrder }) => { context.commit('setPlayerIdOrder', playerIdOrder); });
-				context.state.socket.on('setGameModule', ({ gameModuleId }) => { context.commit('setGameModuleId', gameModuleId); });
+				state.socket.on('setColour', ({ id, newColour }) => { commit('setColour', { playerId: id, newColour: newColour }); });
+				state.socket.on('reorderPlayers', ({ playerIdOrder }) => { commit('setPlayerIdOrder', playerIdOrder); });
+				state.socket.on('setGameModule', ({ gameModuleId }) => { commit('setGameModuleId', gameModuleId); });
 
 				/**
 				 * The game event is the event received when the server is communicating changes in the flow of the
@@ -288,44 +299,14 @@ export default {
 				 *  - card: Updates the information of a specific card
 				 * @param actionsArray The array of objects holding the actions to be performed
 				 */
-				context.state.socket.on('gameEvent', async (actionsArray) => {
-					// Validate the parameter
-					if (!(actionsArray instanceof Array)) { return; }
-					// Cycle through each action
-					for (let action of actionsArray) {
-						switch (action.actionType) {
-							case 'start':
-								context.commit('setInProgress', true);
-								context.commit('setLeftDrawerVisible', false);
-								break;
-							case 'cardGroup':
-								context.commit('setCardGroup', action);
-								break;
-							case 'card':
-								context.commit('setCard', action);
-								for (let cardGroupId of Object.keys(action.cardGroupCardIdOrder || {})) {
-									context.commit('setCardGroup', {
-										cardGroupId: cardGroupId,
-										cardIdOrder: action.cardGroupCardIdOrder[cardGroupId]
-									});
-								}
-								break;
-							case 'playableCards':
-								for (let cardId of Object.keys(context.state.cards)) {
-									context.commit('setCard', { cardId: cardId, playable: action.playableCards.indexOf(cardId) > -1 });
-								}
-								break;
-							default:
-								// Any action not listed here will be a module specific action
-								if (typeof action.actionType === 'string' && action.actionType.length > 0 &&
-									typeof context.state.gameModule.actions[action.actionType] === 'function') {
-									await context.state.gameModule.actions[action.actionType](context, action);
-								}
-								break;
-						}
-						// Check whether or not to delay the next action
-						if (action.delayNextAction) { await wait(100); }
-					}
+				state.socket.on('gameEvent', async (newActionsArray) => {
+					console.log(newActionsArray);
+					// Check if the actions queue is currently empty so we know we have to start processing actions
+					// again
+					const startProcessing = state.actionsQueue.length === 0;
+					// Add the received array of actions to the actions queue
+					commit('addToActionsQueue', newActionsArray);
+					if (startProcessing) { dispatch('processAction'); }
 				});
 
 			} catch (err) {
@@ -337,7 +318,60 @@ export default {
 			state.socket.emit('leaveGame');
 			state.socket.disconnect();
 			commit('reset');
-		}
+		},
 
+		/**
+		 * Processes the next action in the actions queue
+		 */
+		processAction: async (context) => {
+			// Get the first element of the queue
+			const action = context.state.actionsQueue[0];
+			if (!action) { return; }
+			// Flag the queue as being in progress
+			context.commit('setActionsQueueInProgress', true);
+			// Process the action
+			switch (action.actionType) {
+				case 'start':
+					context.commit('setInProgress', true);
+					context.commit('setLeftDrawerVisible', false);
+					break;
+				case 'cardGroup':
+					context.commit('setCardGroup', action);
+					break;
+				case 'card':
+					context.commit('setCard', action);
+					for (let cardGroupId of Object.keys(action.cardGroupCardIdOrder || {})) {
+						context.commit('setCardGroup', {
+							cardGroupId: cardGroupId,
+							cardIdOrder: action.cardGroupCardIdOrder[cardGroupId]
+						});
+					}
+					break;
+				case 'playableCards':
+					for (let cardId of Object.keys(context.state.cards)) {
+						context.commit('setCard', { cardId: cardId, playable: action.playableCards.indexOf(cardId) > -1 });
+					}
+					break;
+				default:
+					// Any action not listed here will be a module specific action
+					if (typeof action.actionType === 'string' && action.actionType.length > 0 &&
+						typeof context.state.gameModule.actions[action.actionType] === 'function') {
+						await context.state.gameModule.actions[action.actionType](context, action);
+					}
+					break;
+			}
+			// Remove this first action to make sure it isn't processed again
+			context.commit('shiftActionsQueue');
+			// Check the queue still has actions to process so we can process the next one
+			if (context.state.actionsQueue.length > 0) {
+				if (action.delayNextAction && !context.state.actionsQueueSkip) { await wait(100); }
+				context.dispatch('processAction');
+			} else {
+				context.commit('setActionsQueueInProgress', false);
+				// Queue is empty: the temporary skip flag can be reset so that future actions that are added to the
+				// queue are played once again with an animation
+				context.commit('setActionsQueueSkip', false);
+			}
+		}
 	}
 }
