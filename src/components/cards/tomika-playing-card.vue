@@ -2,7 +2,7 @@
 	<transition name="scale-card" tag="span">
 		<div class="playing-card" :style="style" :class="{ playable: !actionsQueueInProgress && card.playable }" @click="clickCard">
 			<div class="animation">
-				<div class="inner" :style="{ backgroundPosition: valuePositions }" :class="{ faceDown: !card.faceUp }"></div>
+				<div v-if="!cardGroup.hidden" class="inner" :style="{ backgroundPosition: valuePositions }" :class="{ faceDown: !card.faceUp }"></div>
 			</div>
 		</div>
 	</transition>
@@ -28,7 +28,7 @@
 		},
 		computed: {
 			...mapState('cards', ['cardGroups', 'selfId', 'playerIdOrder', 'actionsQueueInProgress']),
-			...mapGetters('cards', ['cardGroupCards', 'playerCount', 'gameModule']),
+			...mapGetters('cards', ['cardGroupCards', 'playerCount', 'playerAngle', 'gameModule']),
 			style() {
 				return {
 					width: cardWidth + 'px',
@@ -46,21 +46,7 @@
 			cardIndex() {
 				return this.cardGroupCards(this.card.cardGroupId).findIndex(card => card.cardId === this.card.cardId);
 			},
-			/**
-			 * This is the index of the player who's holding this card, assuming the self player is always index 0
-			 * Therefore, a player who plays just before the self player will have the largest index value (equal to the
-			 * number of players - 1
-			 */
-			relativePlayerIndex() {
-				if (!this.cardGroup.playerId || this.cardGroup.playerId === this.selfId) { return 0; }
-				const ownerIndex = this.playerIdOrder.indexOf(this.cardGroup.playerId);
-				const selfIndex = this.playerIdOrder.indexOf(this.selfId);
-				return (ownerIndex + (this.playerIdOrder.length - selfIndex)) % this.playerIdOrder.length;
-			},
-			playerAngle() {
-				if (!this.cardGroup.playerId || this.cardGroup.playerId === this.selfId) { return -(Math.PI / 2); }
-				return this.playerCount === 2 ? (Math.PI / 2) : (Math.PI - (Math.PI * ((this.relativePlayerIndex - 1) / (this.playerCount - 2))));
-			},
+			cardPlayerAngle() { return this.playerAngle(this.cardGroup.playerId); },
 			pos() {
 				// Define the values to return
 				let x = 0, y = 0, z = this.cardIndex, r = 0, scale = 1;
@@ -83,18 +69,26 @@
 					// Self player's hand
 					if (!this.cardGroup.playerId || this.cardGroup.playerId === this.selfId) {
 						scale = Math.max(Math.min(halfScreenWidth / halfScreenHeight, 1.2), 0.9);
-						const handAngle = this.cardGroupLength >= 8 ? (Math.PI / 4) : (Math.PI / 4 / 8 * this.cardGroupLength);
+						// The hand angle is the angle in which the cards may appear in the circle. So if it's PI / 4
+						// for example, that the angle of the arc of cards will be an eighth of a circle, which is the
+						// maximum arc we can have. The values are adjusted for less than 8 cards so there is never any
+						// space in between each card, but so that they are all clearly visible
+						let handAngle = 0;
+						if (this.cardGroupLength >= 8) { handAngle = Math.PI / 4; }
+						else if (this.cardGroupLength >= 4) { handAngle = (Math.PI / 4) / 8 * this.cardGroupLength; }
+						else if (this.cardGroupLength === 3) { handAngle = (Math.PI / 4) / 3; }
+						else if (this.cardGroupLength === 2) { handAngle = (Math.PI / 4) / 6; }
 						const handRadius = cardHeight * scale * (halfScreenWidth < 400 ? 3 : 5);
 						r = -((handAngle / 2) - (percentOfCardGroup * handAngle));
 						const cardAngle = Math.PI / 2 - (handAngle / 2) + (percentOfCardGroup * handAngle);
 						x = -Math.cos(cardAngle) * handRadius;
 						y = halfScreenHeight + (1 - Math.sin(Math.PI / (halfScreenWidth < 400 ? 8 : 12))) * (handRadius) - Math.sin(cardAngle) * handRadius;
 					} else {
-						r = -this.playerAngle - Math.PI / 2;
-						const cosX = Math.cos(this.playerAngle) * (halfScreenWidth - cardHeight / 2 * scale - padding);
-						const cosY = -Math.sin(this.playerAngle) * (halfScreenHeight - cardHeight / 2 * scale - padding);
+						r = -this.cardPlayerAngle - Math.PI / 2;
+						const cosX = Math.cos(this.cardPlayerAngle) * (halfScreenWidth - cardHeight / 2 * scale - padding);
+						const cosY = -Math.sin(this.cardPlayerAngle) * (halfScreenHeight - cardHeight / 2 * scale - padding);
 						const d = -((percentOfCardGroup * Math.min(this.cardGroupLength, 8) - (Math.min(this.cardGroupLength, 8) / 2)) * (cardWidth / (halfScreenWidth < 400 ? 6 : 4)));
-						const m = Math.tan(this.playerAngle + Math.PI / 2);
+						const m = Math.tan(this.cardPlayerAngle + Math.PI / 2);
 						x = cosX + (1 / Math.sqrt(1 + Math.pow(m, 2))) * d;
 						y = cosY - (m / Math.sqrt(1 + Math.pow(m, 2))) * d;
 					}
@@ -102,15 +96,26 @@
 
 				// Layout where the cards are at an angle corresponding to the player who played the card, i.e. the "chosen card"
 				case 'choice':
-					r = -this.playerAngle - Math.PI / 2;
-					x = Math.cos(this.playerAngle) * (cardHeight / 2);
-					y = -Math.sin(this.playerAngle) * (cardHeight / 2);
+					r = -this.cardPlayerAngle - Math.PI / 2;
+					x = Math.cos(this.cardPlayerAngle) * (cardHeight / 2);
+					y = -Math.sin(this.cardPlayerAngle) * (cardHeight / 2);
 					// The following z index makes sure that the card is relative to the order the player is playing in
 					z = this.cardIndex * this.playerCount + this.playerIdOrder.indexOf(this.cardGroup.playerId);
 					break;
 
+				// Layout in which the cards belong to a specific player but are put to one side to indicate that they are out of play
+				case 'hold':
+					if (!this.cardGroup.playerId || this.cardGroup.playerId === this.selfId) {
+						const offset = Math.floor(this.cardIndex / this.playerCount);
+						scale = Math.max(Math.min(halfScreenWidth / halfScreenHeight, 0.7), 0.5);
+						r = Math.PI / 2;
+						x = halfScreenWidth - (cardHeight / 2) - ((offset%2+0.5) * (cardWidth/4));
+						y = halfScreenHeight - (cardWidth / 2) - ((offset+0.5) * (cardWidth/4));
+					}
+					break;
+
 				case 'temp':
-					x = -halfScreenWidth + 3 * (cardWidth / 4);
+					x = halfScreenWidth - 3 * (cardWidth / 4);
 					y = halfScreenHeight - (cardHeight / 2) - (cardWidth / 4);
 					break;
 

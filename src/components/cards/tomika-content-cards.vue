@@ -3,6 +3,9 @@
 		<div class="game">
 			<div class="playing-area" @click="clickPlayingArea">
 				<tomika-playing-card v-for="card in cards" :key="card.cardId" :card="card"></tomika-playing-card>
+				<template v-if="inProgress">
+					<tomika-cards-player-game-info v-for="player in players" :key="player.id" :player="player"></tomika-cards-player-game-info>
+				</template>
 			</div>
 			<div class="drawer left-drawer" :style="{ transform: 'translateX(' + (leftDrawerVisible ? '0' : '-300px') + ')' }">
 				<h1>Player options</h1>
@@ -77,6 +80,7 @@
 	import tomikaBlockMessage from "../tomika-block-message";
 	import tomikaCardsPlayerGraphic from "./tomika-cards-player-graphic";
 	import tomikaPlayingCard from "./tomika-playing-card";
+	import tomikaCardsPlayerGameInfo from './tomika-cards-player-game-info';
 
 	// Font awesome
 	library.add(faCrown, faCheck, faTimes, faChevronUp, faChevronDown);
@@ -87,11 +91,12 @@
 			tomikaCardsGamesSelector,
 			tomikaBlockMessage,
 			tomikaCardsPlayerGraphic,
-			tomikaPlayingCard
+			tomikaPlayingCard,
+			tomikaCardsPlayerGameInfo
 		},
 		computed: {
-			...mapState('cards', ['socket', 'cards', 'hostId', 'playerIdOrder', 'chosenNickname', 'nicknameError',
-				'leftDrawerVisible', 'colours']),
+			...mapState('cards', ['socket', 'cards', 'players', 'hostId', 'playerIdOrder', 'chosenNickname', 'nicknameError',
+				'leftDrawerVisible', 'colours', 'actionsQueueInProgress', 'inProgress']),
 			...mapGetters('cards', ['isHost', 'self', 'playerOrder', 'playerCount', 'inGame', 'takenColours'])
 		},
 		methods: {

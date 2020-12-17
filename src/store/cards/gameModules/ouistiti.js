@@ -2,7 +2,7 @@ export default {
 	cardGroupLayouts: {
 		hand: 'hand',
 		play: 'choice',
-		trump: 'temp'
+		trump: 'temp' // TODO - Replace this with an actual layout which fixes a position on the screen
 	},
 	clickCard: (store, card) => {
 		store.state.cards.socket.emit('gameEvent', { gameEventType: 'playCard', cardId: card.cardId });

@@ -36,6 +36,7 @@ export default {
 		selfId: '',
 		hostId: '',
 		playerIdOrder: [],
+		currentPlayerId: '',
 
 		// Game selection
 		selectedGameId: '',
@@ -79,6 +80,24 @@ export default {
 				if (state.players[playerId]) { acc.push(state.players[playerId]); }
 				return acc;
 			}, []);
+		},
+		currentPlayer: (state) => { return state.players[state.currentPlayerId] || {}; },
+		/**
+		 * This is the index of the player who's holding this card, assuming the self player is always index 0
+		 * Therefore, a player who plays just before the self player will have the largest index value (equal to the
+		 * number of players - 1
+		 */
+		relativePlayerIndex: (state) => (playerId) => {
+			if (!playerId || playerId === state.selfId) { return 0; }
+			const ownerIndex = state.playerIdOrder.indexOf(playerId);
+			const selfIndex = state.playerIdOrder.indexOf(state.selfId);
+			return (ownerIndex + (state.playerIdOrder.length - selfIndex)) % state.playerIdOrder.length;
+		},
+		playerAngle: (state, getters) => (playerId) => {
+			if (!playerId || playerId === state.selfId) { return -(Math.PI / 2); }
+			return getters.playerCount === 2
+				? (Math.PI / 2)
+				: (Math.PI - (Math.PI * ((getters.relativePlayerIndex(playerId) - 1) / (getters.playerCount - 2))));
 		},
 		takenColours: (state) => {
 			return Object.keys(state.colours).filter((c) => {
@@ -136,6 +155,7 @@ export default {
 		// --- GAME RELATED MUTATIONS ---
 
 		setInProgress: (state, inProgress) => { state.inProgress = inProgress; },
+		setRound: (state, round) => { state.round = round; },
 		setGameModuleId: (state, gameModuleId) => {
 			if (state.gameModuleId !== gameModuleId && gameModules[gameModuleId]) {
 				state.gameModuleId = gameModuleId;
@@ -177,6 +197,7 @@ export default {
 		setColour: (state, { playerId, newColour }) => {
 			if (state.players[playerId]) { state.players[playerId].colour = newColour; }
 		},
+		setCurrentPlayerId: (state, playerId) => { state.currentPlayerId = playerId; },
 
 		// --- CARD RELATED MUTATIONS ---
 
@@ -198,8 +219,8 @@ export default {
 
 		setCardGroup: (state, cardGroupData) => {
 			if (typeof cardGroupData.cardGroupId !== 'string') { return; }
-			let newCardGroupData = Object.assign({}, state.cardGroups[cardGroupData.cardGroupId] || { cardId: cardGroupData.cardGroupId });
-			['role', 'playerId', 'ordered', 'cardIdOrder'].forEach(propName => {
+			let newCardGroupData = Object.assign({}, state.cardGroups[cardGroupData.cardGroupId] || { cardGroupId: cardGroupData.cardGroupId });
+			['role', 'playerId', 'ordered', 'cardIdOrder', 'hidden'].forEach(propName => {
 				if (typeof cardGroupData[propName] !== 'undefined') { newCardGroupData[propName] = cardGroupData[propName]; }
 			});
 			Vue.set(state.cardGroups, cardGroupData.cardGroupId, newCardGroupData);
@@ -295,12 +316,10 @@ export default {
 				 * The game event is the event received when the server is communicating changes in the flow of the
 				 * specific game chosen. The data received is an array of actions. Each action is an object with a
 				 * property called "actionType" which determines what must be done to fulfill the changes that the
-				 * server communicated. These are some of the generic action types:
-				 *  - card: Updates the information of a specific card
+				 * server communicated
 				 * @param actionsArray The array of objects holding the actions to be performed
 				 */
 				state.socket.on('gameEvent', async (newActionsArray) => {
-					console.log(newActionsArray);
 					// Check if the actions queue is currently empty so we know we have to start processing actions
 					// again
 					const startProcessing = state.actionsQueue.length === 0;
@@ -321,7 +340,11 @@ export default {
 		},
 
 		/**
-		 * Processes the next action in the actions queue
+		 * Processes the next action in the actions queue. These are some of the generic action types:
+		 *  - start: Sets the game as in progress
+		 *  - cardGroup: Updates the information of a specific card group
+		 *  - card: Updates the information of a specific card
+		 *  - playing: Updates the game with the player who's currently playing as well as which cards are playable
 		 */
 		processAction: async (context) => {
 			// Get the first element of the queue
@@ -335,6 +358,9 @@ export default {
 					context.commit('setInProgress', true);
 					context.commit('setLeftDrawerVisible', false);
 					break;
+				case 'round':
+					context.commit('setRound', action.round);
+					break;
 				case 'cardGroup':
 					context.commit('setCardGroup', action);
 					break;
@@ -347,16 +373,23 @@ export default {
 						});
 					}
 					break;
-				case 'playableCards':
-					for (let cardId of Object.keys(context.state.cards)) {
-						context.commit('setCard', { cardId: cardId, playable: action.playableCards.indexOf(cardId) > -1 });
+				case 'playing':
+					if (action.hasOwnProperty('playableCards')) {
+						for (let cardId of Object.keys(context.state.cards)) {
+							context.commit('setCard', {
+								cardId: cardId,
+								playable: action.playableCards.indexOf(cardId) > -1
+							});
+						}
 					}
+					if (action.hasOwnProperty('currentPlayerId')) { context.commit('setCurrentPlayerId', action.currentPlayerId); }
 					break;
 				default:
 					// Any action not listed here will be a module specific action
-					if (typeof action.actionType === 'string' && action.actionType.length > 0 &&
-						typeof context.state.gameModule.actions[action.actionType] === 'function') {
-						await context.state.gameModule.actions[action.actionType](context, action);
+					console.log(action.actionType);
+					if (typeof action.actionType === 'string' && context.getters.gameModule.actions &&
+						typeof context.getters.gameModule.actions[action.actionType] === 'function') {
+						await context.getters.gameModule.actions[action.actionType](context, action);
 					}
 					break;
 			}

@@ -57,6 +57,7 @@
 	justify-content: center;
 	color: hsla(0,0%,100%,0.5);
 	font-size: 20px;
+	transition: font-size 100ms, width 100ms, height 100ms;
 }
 .red { background-color: hsl(0,75%,60%); }
 .yellow { background-color: hsl(60,75%,60%); }
