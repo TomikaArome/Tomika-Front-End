@@ -87,7 +87,10 @@
 						r = -this.cardPlayerAngle - Math.PI / 2;
 						const cosX = Math.cos(this.cardPlayerAngle) * (halfScreenWidth - cardHeight / 2 * scale - padding);
 						const cosY = -Math.sin(this.cardPlayerAngle) * (halfScreenHeight - cardHeight / 2 * scale - padding);
-						const d = -((percentOfCardGroup * Math.min(this.cardGroupLength, 8) - (Math.min(this.cardGroupLength, 8) / 2)) * (cardWidth / (halfScreenWidth < 400 ? 6 : 4)));
+						let d = 0;
+						if (this.cardGroupLength > 1) {
+							d = -((percentOfCardGroup * Math.min(this.cardGroupLength, 8) - (Math.min(this.cardGroupLength, 8) / 2)) * (cardWidth / (halfScreenWidth < 400 ? 6 : 4)));
+						}
 						const m = Math.tan(this.cardPlayerAngle + Math.PI / 2);
 						x = cosX + (1 / Math.sqrt(1 + Math.pow(m, 2))) * d;
 						y = cosY - (m / Math.sqrt(1 + Math.pow(m, 2))) * d;

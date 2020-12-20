@@ -2,10 +2,13 @@
 	<div id="tomika-content-ouistiti">
 		<div class="game">
 			<div class="playing-area" @click="clickPlayingArea">
-				<tomika-playing-card v-for="card in cards" :key="card.cardId" :card="card"></tomika-playing-card>
-				<template v-if="inProgress">
+				<div class="playing-area-container cards-container">
+					<tomika-playing-card v-for="card in cards" :key="card.cardId" :card="card"></tomika-playing-card>
+				</div>
+				<div v-if="inProgress" class="playing-area-container player-game-info-container">
 					<tomika-cards-player-game-info v-for="player in players" :key="player.id" :player="player"></tomika-cards-player-game-info>
-				</template>
+				</div>
+				<tomika-cards-acknowledgement></tomika-cards-acknowledgement>
 			</div>
 			<div class="drawer left-drawer" :style="{ transform: 'translateX(' + (leftDrawerVisible ? '0' : '-300px') + ')' }">
 				<h1>Player options</h1>
@@ -81,6 +84,7 @@
 	import tomikaCardsPlayerGraphic from "./tomika-cards-player-graphic";
 	import tomikaPlayingCard from "./tomika-playing-card";
 	import tomikaCardsPlayerGameInfo from './tomika-cards-player-game-info';
+	import tomikaCardsAcknowledgement from "./tomika-cards-acknowledgement";
 
 	// Font awesome
 	library.add(faCrown, faCheck, faTimes, faChevronUp, faChevronDown);
@@ -92,7 +96,8 @@
 			tomikaBlockMessage,
 			tomikaCardsPlayerGraphic,
 			tomikaPlayingCard,
-			tomikaCardsPlayerGameInfo
+			tomikaCardsPlayerGameInfo,
+			tomikaCardsAcknowledgement
 		},
 		computed: {
 			...mapState('cards', ['socket', 'cards', 'players', 'hostId', 'playerIdOrder', 'chosenNickname', 'nicknameError',
@@ -165,6 +170,7 @@ h1, h2 {
 
 .drawer {
 	position: absolute;
+	z-index: 1;
 	top: 0;
 	left: 0;
 	background-color: hsla(200,30%,10%,0.9);
@@ -392,9 +398,18 @@ h1, h2 {
  | Playing area |
  *--------------*/
 
-.playing-area {
+.playing-area, .playing-area-container {
+	position: absolute;
+	top: 0;
+	left: 0;
 	height: 100%;
 	width: 100%;
+	pointer-events: none;
 }
-
+.playing-area-container:not(.player-game-info-container) > * {
+	pointer-events: auto;
+}
+.playing-area { z-index: 0; }
+.cards-container { z-index: 0; }
+.player-game-info-container { z-index: 1; }
 </style>

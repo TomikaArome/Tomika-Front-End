@@ -31,6 +31,8 @@ export default {
 		actionsQueue: [],
 		actionsQueueInProgress: false,
 		actionsQueueSkip: false,
+		acknowledgementRemainingPlayerIds: [],
+		acknowledgementTitle: '',
 
 		// Player related properties
 		selfId: '',
@@ -180,6 +182,8 @@ export default {
 		shiftActionsQueue: (state) => { state.actionsQueue.shift(); },
 		setActionsQueueInProgress: (state, inProgress) => { state.actionsQueueInProgress = !!inProgress; },
 		setActionsQueueSkip: (state, skip) => { state.actionsQueueSkip = !!skip; },
+		setAcknowledgementRemainingPlayerIds: (state, playerIdsArray) => { state.acknowledgementRemainingPlayerIds = playerIdsArray; },
+		setAcknowledgementTitle: (state, title) => { state.acknowledgementTitle = title; },
 
 		// --- PLAYER RELATED MUTATIONS ---
 
@@ -361,6 +365,10 @@ export default {
 				case 'round':
 					context.commit('setRound', action.round);
 					break;
+				case 'acknowledgement':
+					context.commit('setAcknowledgementRemainingPlayerIds', action.remainingPlayerIds);
+					if (action.acknowledgementTitle) { context.commit('setAcknowledgementTitle', action.acknowledgementTitle); }
+					break;
 				case 'cardGroup':
 					context.commit('setCardGroup', action);
 					break;
@@ -386,7 +394,6 @@ export default {
 					break;
 				default:
 					// Any action not listed here will be a module specific action
-					console.log(action.actionType);
 					if (typeof action.actionType === 'string' && context.getters.gameModule.actions &&
 						typeof context.getters.gameModule.actions[action.actionType] === 'function') {
 						await context.getters.gameModule.actions[action.actionType](context, action);

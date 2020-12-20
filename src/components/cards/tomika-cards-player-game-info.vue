@@ -1,5 +1,5 @@
 <template>
-	<div class="tomika-cards-player-game-info" :style="style" :class="{ hover: hover }">
+	<div class="tomika-cards-player-game-info" :style="style" :class="{ hover: hover, 'current-player': currentPlayerId === player.id }">
 		<div class="nickname" :style="{ color: colours[player.colour] }">{{ player.nickname }}</div>
 		<div class="tricks-status">
 			<span class="tricks-won"><span class="bold">{{ wonTricks }}</span> tricks</span>
@@ -31,7 +31,7 @@
 			};
 		},
 		computed: {
-			...mapState('cards', ['cardGroups', 'colours']),
+			...mapState('cards', ['currentPlayerId', 'cardGroups', 'colours']),
 			...mapGetters('cards', ['playerCount', 'playerAngle', 'cardGroupCards']),
 			style() {
 				let playerAngleCos = Math.cos(this.playerAngle(this.player.id)), align = 'center';
@@ -109,10 +109,13 @@
 	text-shadow: -1px 1px 1px hsl(0,0%,0%);
 	background-color: hsla(0,0%,0%,0.7);
 	transition: opacity 100ms;
-	pointer-events: none;
 }
 .hover {
 	opacity: 0;
+}
+.current-player {
+	border: 4px solid hsla(200,80%,50%,0.5);
+	background-color: hsla(200,30%,10%,0.7);
 }
 .nickname {
 	font-size: 24px;
