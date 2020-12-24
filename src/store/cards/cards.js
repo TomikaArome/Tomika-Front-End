@@ -27,12 +27,18 @@ export default {
 		gameModuleData: {},
 		inProgress: false,
 		round: 1,
-		phase: 'playing',
+		phase: '',
+
+		// Actions
 		actionsQueue: [],
 		actionsQueueInProgress: false,
 		actionsQueueSkip: false,
+
+		// Acknowledgements
+		acknowledgementIdentifier: '',
 		acknowledgementRemainingPlayerIds: [],
 		acknowledgementTitle: '',
+		maxBid: 8, // TODO Temporary
 
 		// Player related properties
 		selfId: '',
@@ -56,6 +62,7 @@ export default {
 		// TODO - Deprecated
 		totalCardCount: 32,
 		totalRoundCount: 18,
+		bids: {},
 
 		colours: {
 			red: 'hsl(0,75%,60%)',
@@ -139,16 +146,15 @@ export default {
 		reset: (state) => {
 			// TODO - complete
 			state.games = [];
+			state.players = {};
+			state.cards = {};
+			state.cardGroups = {};
 			state.selectedGameId = '';
 			state.selfId = '';
 			state.hostId = '';
 			state.gameModuleId = 'game-module-generic';
 			state.inProgress = false;
-			state.players = [];
 			state.playerIdOrder = [];
-			state.trump = '';
-			state.totalCardCount = 32;
-			state.totalRoundCount = 18;
 		},
 		setSocket: (state, payload) => { state.socket = payload; },
 		setSelectedGameId: (state, payload) => { state.selectedGameId = payload; },
@@ -158,6 +164,7 @@ export default {
 
 		setInProgress: (state, inProgress) => { state.inProgress = inProgress; },
 		setRound: (state, round) => { state.round = round; },
+		setPhase: (state, phase) => { state.phase = phase },
 		setGameModuleId: (state, gameModuleId) => {
 			if (state.gameModuleId !== gameModuleId && gameModules[gameModuleId]) {
 				state.gameModuleId = gameModuleId;
@@ -179,11 +186,19 @@ export default {
 			if (!(newActionsArray instanceof Array)) { return; }
 			state.actionsQueue.push(...newActionsArray);
 		},
+
+		// --- ACTIONS ---
+
 		shiftActionsQueue: (state) => { state.actionsQueue.shift(); },
 		setActionsQueueInProgress: (state, inProgress) => { state.actionsQueueInProgress = !!inProgress; },
 		setActionsQueueSkip: (state, skip) => { state.actionsQueueSkip = !!skip; },
+
+		// --- ACKNOWLEDGEMENTS ---
+
+		setAcknowledgementIdentifier: (state, identifier) => { state.acknowledgementIdentifier = identifier },
 		setAcknowledgementRemainingPlayerIds: (state, playerIdsArray) => { state.acknowledgementRemainingPlayerIds = playerIdsArray; },
 		setAcknowledgementTitle: (state, title) => { state.acknowledgementTitle = title; },
+		setMaxBid: (state, bid) => { state.maxBid = bid; },
 
 		// --- PLAYER RELATED MUTATIONS ---
 
@@ -249,7 +264,11 @@ export default {
 
 		// --- UI RELATED MUTATIONS ---
 
-		setLeftDrawerVisible: (state, visible) => { state.leftDrawerVisible = visible; }
+		setLeftDrawerVisible: (state, visible) => { state.leftDrawerVisible = visible; },
+
+		// TODO DEPRECATED
+
+		setBids: (state, bids) => { state.bids = bids; }
 
 	},
 	actions: {
@@ -365,9 +384,14 @@ export default {
 				case 'round':
 					context.commit('setRound', action.round);
 					break;
+				case 'phase':
+					context.commit('setPhase', action.phase);
+					break;
 				case 'acknowledgement':
+					if (action.identifier) { context.commit('setAcknowledgementIdentifier', action.identifier); }
 					context.commit('setAcknowledgementRemainingPlayerIds', action.remainingPlayerIds);
-					if (action.acknowledgementTitle) { context.commit('setAcknowledgementTitle', action.acknowledgementTitle); }
+					if (action.title) { context.commit('setAcknowledgementTitle', action.title); }
+					if (action.maxBid) { context.commit('setMaxBid', action.maxBid); }
 					break;
 				case 'cardGroup':
 					context.commit('setCardGroup', action);
@@ -391,6 +415,9 @@ export default {
 						}
 					}
 					if (action.hasOwnProperty('currentPlayerId')) { context.commit('setCurrentPlayerId', action.currentPlayerId); }
+					break;
+				case 'bids':
+					context.commit('setBids', action.bids);
 					break;
 				default:
 					// Any action not listed here will be a module specific action

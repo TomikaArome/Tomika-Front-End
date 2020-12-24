@@ -2,7 +2,11 @@
 	<div id="tomika-cards-acknowledgement" :class="{ hidden: acknowledgementRemainingPlayerIds.length === 0 }">
 		<div class="title-text" v-if="acknowledgementTitle">{{ acknowledgementTitle }}</div>
 		<div class="buttons-row">
-			<button @click="acknowledge">Next</button>
+			<template v-if="acknowledgementIdentifier === 'bid'">
+				<button v-for="i in (maxBid + 1)" @click="acknowledge(i - 1)" :key="i" class="numberSelect"
+					:style="{ 'background-color': selfColour }" :disabled="selfHasAcknowledged">{{ (i - 1) }}</button>
+			</template>
+			<button v-else @click="acknowledge" :disabled="selfHasAcknowledged">Next</button>
 		</div>
 		<div class="waiting-for">Waiting for:</div>
 		<div>
@@ -14,18 +18,35 @@
 
 <script>
 	// Import dependencies
-	import { mapState } from 'vuex';
+	import { mapState, mapMutations } from 'vuex';
 	import TomikaCardsPlayerGraphic from "./tomika-cards-player-graphic";
 
 	export default {
 		name: "tomika-cards-acknowledgement",
 		components: {TomikaCardsPlayerGraphic},
 		computed: {
-			...mapState('cards', ['socket', 'players', 'acknowledgementRemainingPlayerIds', 'acknowledgementTitle', 'colours'])
+			...mapState('cards', ['socket', 'players', 'selfId', 'acknowledgementIdentifier', 'acknowledgementRemainingPlayerIds', 'acknowledgementTitle', 'colours', 'maxBid', 'bids']),
+			selfHasAcknowledged() {
+				return this.acknowledgementRemainingPlayerIds.indexOf(this.selfId) === -1;
+			},
+			selfColour() {
+				if (!this.players[this.selfId]) { return 'hsl(0,0%,0%)'; }
+				let colour = this.colours[this.players[this.selfId].colour].replace(/^hsl\(([0-9]+),([0-9]+)%,([0-9]+)%\)/i, 'hsl($1,$2%,20%)');
+				if (this.players[this.selfId].colour === 'black') { colour = 'hsl(0,0%,0%)'; }
+				return colour;
+			}
 		},
 		methods: {
-			acknowledge() {
-				this.socket.emit('gameEvent', { gameEventType: 'acknowledge' });
+			...mapMutations('cards', ['setBids']),
+			acknowledge(bid) {
+				let bidEmitObj = {};
+				if (typeof bid === 'number') {
+					bidEmitObj = { bid: bid };
+					const mutationObj = this.bids;
+					mutationObj[this.selfId] = bid;
+					this.setBids(mutationObj);
+				}
+				this.socket.emit('gameEvent', { gameEventType: 'acknowledge', ...bidEmitObj });
 			}
 		}
 	}
@@ -33,6 +54,7 @@
 
 <style scoped>
 #tomika-cards-acknowledgement {
+	max-width: 275px;
 	display: flex;
 	flex-direction: column;
 	place-items: center;
@@ -53,9 +75,13 @@
 #tomika-cards-acknowledgement.hidden {
 	transform: translateY(100%);
 }
+.title-text {
+	margin-bottom: 8px;
+}
 .buttons-row {
 	display: flex;
 	flex-direction: row;
+	flex-wrap: wrap;
 	place-items: center;
 }
 button {
@@ -74,6 +100,17 @@ button:before {
 	position: absolute;
 	top: 0; left: 0;
 	width: 100%; height: 100%;
+}
+.numberSelect {
+	width: 50px;
+	height: 50px;
+	padding: 8px;
+	margin-right: -10px;
+	transform: translateX(-10%);
+}
+.numberSelect:first-child {
+	background-color: hsl(0,0%,0%) !important;
+	border-style: dashed;
 }
 .waiting-for {
 	margin-top: 20px;

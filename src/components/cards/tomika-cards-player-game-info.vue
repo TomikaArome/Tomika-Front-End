@@ -2,9 +2,9 @@
 	<div class="tomika-cards-player-game-info" :style="style" :class="{ hover: hover, 'current-player': currentPlayerId === player.id }">
 		<div class="nickname" :style="{ color: colours[player.colour] }">{{ player.nickname }}</div>
 		<div class="tricks-status">
-			<span class="tricks-won"><span class="bold">{{ wonTricks }}</span> tricks</span>
+			<span class="tricks-won"><span class="bold">{{ wonTricks }}</span> trick{{ wonTricks === 1 ? '' : 's' }}</span>
 			/
-			<span class="bid"><span class="bold">3</span> bid</span>
+			<span class="bid"><span class="bold">{{ bid }}</span> bid</span>
 		</div>
 	</div>
 </template>
@@ -31,7 +31,7 @@
 			};
 		},
 		computed: {
-			...mapState('cards', ['currentPlayerId', 'cardGroups', 'colours']),
+			...mapState('cards', ['currentPlayerId', 'cardGroups', 'colours', 'bids']),
 			...mapGetters('cards', ['playerCount', 'playerAngle', 'cardGroupCards']),
 			style() {
 				let playerAngleCos = Math.cos(this.playerAngle(this.player.id)), align = 'center';
@@ -63,6 +63,9 @@
 					return Math.ceil(this.cardGroupCards(cardGroup.cardGroupId).length / this.playerCount);
 				}
 				return 0;
+			},
+			bid() {
+				return typeof this.bids[this.player.id] === 'number' && this.bids[this.player.id] > -1 ? this.bids[this.player.id] : '?';
 			}
 		},
 		methods: {

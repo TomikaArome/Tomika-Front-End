@@ -61,6 +61,7 @@
 						<button class="red" @click="leaveGame">Leave game</button>
 						<button class="green" v-if="isHost" @click="startGame">Start game</button>
 					</div>
+					<button v-if="isHost" @click="skipToNextRound">Skip round</button>
 				</section>
 			</div>
 			<div class="drawer-tab" :style="{ transform: 'rotate(90deg) translate(-32px, ' + (leftDrawerVisible ? '-300px' : '0') + ')' }" @click="setLeftDrawerVisible(!leftDrawerVisible)">
@@ -132,6 +133,9 @@
 			},
 			clickPlayingArea() {
 				if (this.actionsQueueInProgress) { this.setActionsQueueSkip(true); }
+			},
+			skipToNextRound() {
+				this.socket.emit('gameEvent', { gameEventType: 'skipToNextRound' });
 			}
 		},
 		mounted() {
