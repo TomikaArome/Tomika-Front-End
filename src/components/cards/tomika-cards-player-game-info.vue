@@ -117,8 +117,8 @@
 	opacity: 0;
 }
 .current-player {
-	border: 4px solid hsla(200,80%,50%,0.5);
-	background-color: hsla(200,30%,10%,0.7);
+	border: 4px solid hsla(120,80%,50%,0.5);
+	background-color: hsla(120,30%,10%,0.7);
 }
 .nickname {
 	font-size: 24px;
