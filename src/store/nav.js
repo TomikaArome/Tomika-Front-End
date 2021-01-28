@@ -61,6 +61,12 @@ export default {
 				pathname: '/stream-control',
 				component: 'tomika-content-stream-control',
 				auth: () => { return false; }
+			},
+			{
+				name: 'Cards',
+				title: 'Cards',
+				pathname: '/cards',
+				component: 'tomika-content-cards'
 			}
 		]
 

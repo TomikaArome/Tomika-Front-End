@@ -31,6 +31,7 @@
 	import tomikaContentStreamControl from './stream-control/tomika-content-stream-control';
 	import tomikaContentAdmin from './admin/tomika-content-admin';
 	import tomikaContentUser from './user/tomika-content-user';
+	import tomikaContentCards from './cards/tomika-content-cards';
 
 	// Import requests
 	import { userInfoReq } from '../requests/user';
@@ -49,7 +50,8 @@
 			tomikaContentIndex,
 			tomikaContentStreamControl,
 			tomikaContentAdmin,
-			tomikaContentUser
+			tomikaContentUser,
+			tomikaContentCards
 		},
 		data() {
 			return {}
@@ -82,6 +84,11 @@
 		async mounted() {
 			// Attempt to get user and bot's information from Discord
 			userInfoReq();
+
+			// Create an event listener to change the height of the app (the area below the nav bar)
+			window.addEventListener('resize', () => {
+				this.$store.commit('app/setAppSize', { w: window.innerWidth, h: window.innerHeight - 40 });
+			});
 
 			// Create an event listener to be used to detect when a user has gone through Discord authorisation
 			window.addEventListener('message', async (event) => {

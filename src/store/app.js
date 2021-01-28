@@ -10,7 +10,9 @@ export default {
 	state: {
 		backEnd: config['back-end-url'],
 		backEndUnreachable: true,
-		popupStack: []
+		popupStack: [],
+		appWidth: window.innerWidth,
+		appHeight: window.innerHeight - 40
 	},
 	getters: {
 
@@ -34,6 +36,10 @@ export default {
 		},
 		popPopup(state) {
 			state.popupStack.pop();
+		},
+		setAppSize(state, payload) {
+			state.appWidth = payload.w;
+			state.appHeight = payload.h;
 		}
 	},
 	actions: {
