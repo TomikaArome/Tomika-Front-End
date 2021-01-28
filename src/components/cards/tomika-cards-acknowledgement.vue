@@ -60,20 +60,20 @@
 	place-items: center;
 	justify-content: center;
 	position: absolute;
-	top: 0;
+	bottom: 0;
 	left: 50px;
 	z-index: 2;
 	pointer-events: none;
 	background-color: hsla(200,30%,10%,0.9);
 	border: 4px solid hsla(200,50%,0%,0.3);
-	border-bottom-left-radius: 8px;
-	border-bottom-right-radius: 8px;
+	border-top-left-radius: 8px;
+	border-top-right-radius: 8px;
 	border-bottom: none;
 	padding: 20px 32px;
 	transition: transform 200ms;
 }
 #tomika-cards-acknowledgement.hidden {
-	transform: translateY(-100%);
+	transform: translateY(100%);
 }
 .title-text {
 	margin-bottom: 8px;
